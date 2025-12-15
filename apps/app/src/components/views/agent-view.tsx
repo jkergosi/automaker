@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useAppStore } from "@/store/app-store";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageDropZone } from "@/components/ui/image-drop-zone";
@@ -222,11 +221,6 @@ export function AgentView() {
       e.stopPropagation();
       if (isProcessing || !isConnected) return;
 
-      console.log(
-        "[agent-view] Drag enter types:",
-        Array.from(e.dataTransfer.types)
-      );
-
       // Check if dragged items contain files
       if (e.dataTransfer.types.includes("Files")) {
         setIsDragOver(true);
@@ -262,39 +256,21 @@ export function AgentView() {
 
       if (isProcessing || !isConnected) return;
 
-      console.log("[agent-view] Drop event:", {
-        filesCount: e.dataTransfer.files.length,
-        itemsCount: e.dataTransfer.items.length,
-        types: Array.from(e.dataTransfer.types),
-      });
-
       // Check if we have files
       const files = e.dataTransfer.files;
       if (files && files.length > 0) {
-        console.log("[agent-view] Processing files from dataTransfer.files");
         processDroppedFiles(files);
         return;
       }
 
       // Handle file paths (from screenshots or other sources)
-      // This is common on macOS when dragging screenshots
       const items = e.dataTransfer.items;
       if (items && items.length > 0) {
-        console.log("[agent-view] Processing items");
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          console.log(`[agent-view] Item ${i}:`, {
-            kind: item.kind,
-            type: item.type,
-          });
           if (item.kind === "file") {
             const file = item.getAsFile();
             if (file) {
-              console.log("[agent-view] Got file from item:", {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-              });
               const dataTransfer = new DataTransfer();
               dataTransfer.items.add(file);
               processDroppedFiles(dataTransfer.files);
@@ -315,10 +291,6 @@ export function AgentView() {
 
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          console.log("[agent-view] Paste item:", {
-            kind: item.kind,
-            type: item.type,
-          });
 
           if (item.kind === "file") {
             const file = item.getAsFile();
@@ -330,10 +302,6 @@ export function AgentView() {
         }
 
         if (files.length > 0) {
-          console.log(
-            "[agent-view] Processing pasted image files:",
-            files.length
-          );
           const dataTransfer = new DataTransfer();
           files.forEach((file) => dataTransfer.items.add(file));
           await processDroppedFiles(dataTransfer.files);
@@ -442,13 +410,15 @@ export function AgentView() {
   if (!currentProject) {
     return (
       <div
-        className="flex-1 flex items-center justify-center"
+        className="flex-1 flex items-center justify-center bg-background"
         data-testid="agent-view-no-project"
       >
-        <div className="text-center">
-          <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No Project Selected</h2>
-          <p className="text-muted-foreground">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-semibold mb-3 text-foreground">No Project Selected</h2>
+          <p className="text-muted-foreground leading-relaxed">
             Open or create a project to start working with the AI agent.
           </p>
         </div>
@@ -472,12 +442,12 @@ export function AgentView() {
 
   return (
     <div
-      className="flex-1 flex overflow-hidden content-bg"
+      className="flex-1 flex overflow-hidden bg-background"
       data-testid="agent-view"
     >
       {/* Session Manager Sidebar */}
       {showSessionManager && currentProject && (
-        <div className="w-80 border-r flex-shrink-0">
+        <div className="w-80 border-r border-border flex-shrink-0 bg-card/50">
           <SessionManager
             currentSessionId={currentSessionId}
             onSelectSession={handleSelectSession}
@@ -491,13 +461,13 @@ export function AgentView() {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-glass backdrop-blur-md">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSessionManager(!showSessionManager)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
             >
               {showSessionManager ? (
                 <PanelLeftClose className="w-4 h-4" />
@@ -505,26 +475,28 @@ export function AgentView() {
                 <PanelLeft className="w-4 h-4" />
               )}
             </Button>
-            <Bot className="w-5 h-5 text-primary" />
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-primary" />
+            </div>
             <div>
-              <h1 className="text-xl font-bold">AI Agent</h1>
+              <h1 className="text-lg font-semibold text-foreground">AI Agent</h1>
               <p className="text-sm text-muted-foreground">
                 {currentProject.name}
-                {currentSessionId && !isConnected && " · Connecting..."}
+                {currentSessionId && !isConnected && " - Connecting..."}
               </p>
             </div>
           </div>
 
           {/* Status indicators & actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {currentTool && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                <Wrench className="w-3 h-3" />
-                <span>{currentTool}</span>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border">
+                <Wrench className="w-3 h-3 text-primary" />
+                <span className="font-medium">{currentTool}</span>
               </div>
             )}
             {agentError && (
-              <span className="text-xs text-destructive">{agentError}</span>
+              <span className="text-xs text-destructive font-medium">{agentError}</span>
             )}
             {currentSessionId && messages.length > 0 && (
               <Button
@@ -532,8 +504,9 @@ export function AgentView() {
                 size="sm"
                 onClick={handleClearChat}
                 disabled={isProcessing}
+                className="text-muted-foreground hover:text-foreground"
               >
-                <Trash2 className="w-4 h-4 mr-1" />
+                <Trash2 className="w-4 h-4 mr-2" />
                 Clear
               </Button>
             )}
@@ -543,22 +516,25 @@ export function AgentView() {
         {/* Messages */}
         {!currentSessionId ? (
           <div
-            className="flex-1 flex items-center justify-center"
+            className="flex-1 flex items-center justify-center bg-background"
             data-testid="no-session-placeholder"
           >
-            <div className="text-center">
-              <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <h2 className="text-lg font-semibold mb-2">
+            <div className="text-center max-w-md">
+              <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-6">
+                <Bot className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h2 className="text-lg font-semibold mb-3 text-foreground">
                 No Session Selected
               </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create or select a session to start chatting
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Create or select a session to start chatting with the AI agent
               </p>
               <Button
                 onClick={() => setShowSessionManager(true)}
                 variant="outline"
+                className="gap-2"
               >
-                <PanelLeft className="w-4 h-4 mr-2" />
+                <PanelLeft className="w-4 h-4" />
                 {showSessionManager ? "View" : "Show"} Sessions
               </Button>
             </div>
@@ -566,7 +542,7 @@ export function AgentView() {
         ) : (
           <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4"
+            className="flex-1 overflow-y-auto px-6 py-6 space-y-6 scroll-smooth"
             data-testid="message-list"
             onScroll={handleScroll}
           >
@@ -574,95 +550,156 @@ export function AgentView() {
               <div
                 key={message.id}
                 className={cn(
-                  "flex gap-3",
-                  message.role === "user" && "flex-row-reverse"
+                  "flex gap-4 max-w-4xl",
+                  message.role === "user" ? "flex-row-reverse ml-auto" : ""
                 )}
               >
+                {/* Avatar */}
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                    message.role === "assistant" ? "bg-primary/10" : "bg-muted"
+                    "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                    message.role === "assistant"
+                      ? "bg-primary/10 ring-1 ring-primary/20"
+                      : "bg-muted ring-1 ring-border"
                   )}
                 >
                   {message.role === "assistant" ? (
                     <Bot className="w-4 h-4 text-primary" />
                   ) : (
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 text-muted-foreground" />
                   )}
                 </div>
-                <Card
+
+                {/* Message Bubble */}
+                <div
                   className={cn(
-                    "max-w-[80%] py-0",
+                    "flex-1 max-w-[85%] rounded-2xl px-4 py-3 shadow-sm",
                     message.role === "user"
-                      ? "bg-transparent border border-primary text-foreground"
-                      : "border-l-4 border-primary bg-card"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border border-border"
                   )}
                 >
-                  <CardContent className="px-3 py-2">
-                    {message.role === "assistant" ? (
-                      <Markdown className="text-sm text-primary prose-headings:text-primary prose-strong:text-primary prose-code:text-primary">
-                        {message.content}
-                      </Markdown>
-                    ) : (
-                      <p className="text-sm whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                    )}
-                    <p
-                      className={cn(
-                        "text-xs mt-1",
-                        message.role === "user"
-                          ? "text-muted-foreground"
-                          : "text-primary/70"
-                      )}
-                    >
-                      {new Date(message.timestamp).toLocaleTimeString()}
+                  {message.role === "assistant" ? (
+                    <Markdown className="text-sm text-foreground prose-p:leading-relaxed prose-headings:text-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
+                      {message.content}
+                    </Markdown>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content}
                     </p>
-                  </CardContent>
-                </Card>
+                  )}
+                  <p
+                    className={cn(
+                      "text-[11px] mt-2 font-medium",
+                      message.role === "user"
+                        ? "text-primary-foreground/70"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
             ))}
 
+            {/* Thinking Indicator */}
             {isProcessing && (
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="flex gap-4 max-w-4xl">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 ring-1 ring-primary/20 flex items-center justify-center shrink-0 shadow-sm">
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
-                <Card className="border-l-4 border-primary bg-card py-0">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <span className="text-sm text-primary">
-                        Thinking...
-                      </span>
+                <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "300ms" }} />
                     </div>
-                  </CardContent>
-                </Card>
+                    <span className="text-sm text-muted-foreground">
+                      Thinking...
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Input */}
+        {/* Input Area */}
         {currentSessionId && (
-          <div className="border-t border-border p-4 space-y-3 bg-background">
+          <div className="border-t border-border p-4 bg-card/50 backdrop-blur-sm">
             {/* Image Drop Zone (when visible) */}
             {showImageDropZone && (
               <ImageDropZone
                 onImagesSelected={handleImagesSelected}
                 images={selectedImages}
                 maxFiles={5}
-                className="mb-3"
+                className="mb-4"
                 disabled={isProcessing || !isConnected}
               />
             )}
 
-            {/* Text Input and Controls - with drag and drop support */}
+            {/* Selected Images Preview */}
+            {selectedImages.length > 0 && (
+              <div className="mb-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-foreground">
+                    {selectedImages.length} image
+                    {selectedImages.length > 1 ? "s" : ""} attached
+                  </p>
+                  <button
+                    onClick={() => setSelectedImages([])}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={isProcessing}
+                  >
+                    Clear all
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedImages.map((image) => (
+                    <div
+                      key={image.id}
+                      className="group relative rounded-lg border border-border bg-muted/30 p-2 flex items-center gap-2 hover:border-primary/30 transition-colors"
+                    >
+                      {/* Image thumbnail */}
+                      <div className="w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                        <img
+                          src={image.data}
+                          alt={image.filename}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {/* Image info */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-foreground truncate max-w-24">
+                          {image.filename}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatFileSize(image.size)}
+                        </p>
+                      </div>
+                      {/* Remove button */}
+                      <button
+                        onClick={() => removeImage(image.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        disabled={isProcessing}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Text Input and Controls */}
             <div
               className={cn(
-                "flex gap-2 transition-all duration-200 rounded-lg",
-                isDragOver &&
-                  "bg-primary/10 ring-2 ring-primary ring-offset-2 ring-offset-background"
+                "flex gap-2 transition-all duration-200 rounded-xl p-1",
+                isDragOver && "bg-primary/5 ring-2 ring-primary/30"
               )}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
@@ -684,21 +721,19 @@ export function AgentView() {
                   disabled={isProcessing || !isConnected}
                   data-testid="agent-input"
                   className={cn(
-                    "bg-input border-border",
-                    selectedImages.length > 0 &&
-                      "border-primary/50 bg-primary/5",
-                    isDragOver &&
-                      "border-primary bg-primary/10"
+                    "h-11 bg-background border-border rounded-xl pl-4 pr-20 text-sm transition-all",
+                    "focus:ring-2 focus:ring-primary/20 focus:border-primary/50",
+                    selectedImages.length > 0 && "border-primary/30",
+                    isDragOver && "border-primary bg-primary/5"
                   )}
                 />
                 {selectedImages.length > 0 && !isDragOver && (
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-primary-foreground bg-primary px-2 py-1 rounded">
-                    {selectedImages.length} image
-                    {selectedImages.length > 1 ? "s" : ""}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
+                    {selectedImages.length} image{selectedImages.length > 1 ? "s" : ""}
                   </div>
                 )}
                 {isDragOver && (
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-primary-foreground bg-primary px-2 py-1 rounded flex items-center gap-1">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-primary font-medium">
                     <Paperclip className="w-3 h-3" />
                     Drop here
                   </div>
@@ -708,13 +743,13 @@ export function AgentView() {
               {/* Image Attachment Button */}
               <Button
                 variant="outline"
-                size="default"
+                size="icon"
                 onClick={toggleImageDropZone}
                 disabled={isProcessing || !isConnected}
                 className={cn(
-                  showImageDropZone &&
-                    "bg-primary/20 text-primary border-primary",
-                  selectedImages.length > 0 && "border-primary"
+                  "h-11 w-11 rounded-xl border-border",
+                  showImageDropZone && "bg-primary/10 text-primary border-primary/30",
+                  selectedImages.length > 0 && "border-primary/30 text-primary"
                 )}
                 title="Attach images"
               >
@@ -729,64 +764,17 @@ export function AgentView() {
                   isProcessing ||
                   !isConnected
                 }
+                className="h-11 px-4 rounded-xl"
                 data-testid="send-message"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
 
-            {/* Selected Images Preview */}
-            {selectedImages.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-foreground">
-                    {selectedImages.length} image
-                    {selectedImages.length > 1 ? "s" : ""} attached
-                  </p>
-                  <button
-                    onClick={() => setSelectedImages([])}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                    disabled={isProcessing}
-                  >
-                    Clear all
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedImages.map((image) => (
-                    <div
-                      key={image.id}
-                      className="relative group rounded-md border border-muted bg-muted/50 p-2 flex items-center space-x-2"
-                    >
-                      {/* Image thumbnail */}
-                      <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
-                        <img
-                          src={image.data}
-                          alt={image.filename}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      {/* Image info */}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-foreground truncate">
-                          {image.filename}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatFileSize(image.size)}
-                        </p>
-                      </div>
-                      {/* Remove button */}
-                      <button
-                        onClick={() => removeImage(image.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-destructive hover:text-destructive-foreground text-muted-foreground"
-                        disabled={isProcessing}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Keyboard hint */}
+            <p className="text-[11px] text-muted-foreground mt-2 text-center">
+              Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium">Enter</kbd> to send
+            </p>
           </div>
         )}
       </div>

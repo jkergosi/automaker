@@ -79,6 +79,19 @@
   --color-running-indicator: var(--running-indicator);
   --color-running-indicator-text: var(--running-indicator-text);
 
+  /* Status colors */
+  --color-status-success: var(--status-success);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-error: var(--status-error);
+  --color-status-error-bg: var(--status-error-bg);
+  --color-status-info: var(--status-info);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-backlog: var(--status-backlog);
+  --color-status-in-progress: var(--status-in-progress);
+  --color-status-waiting: var(--status-waiting);
+
   /* Border radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -142,6 +155,31 @@
   /* Running indicator - Purple */
   --running-indicator: oklch(0.55 0.25 265);
   --running-indicator-text: oklch(0.6 0.22 265);
+
+  /* Status colors - Light mode */
+  --status-success: oklch(0.55 0.2 140);
+  --status-success-bg: oklch(0.55 0.2 140 / 0.15);
+  --status-warning: oklch(0.7 0.15 70);
+  --status-warning-bg: oklch(0.7 0.15 70 / 0.15);
+  --status-error: oklch(0.55 0.22 25);
+  --status-error-bg: oklch(0.55 0.22 25 / 0.15);
+  --status-info: oklch(0.55 0.2 230);
+  --status-info-bg: oklch(0.55 0.2 230 / 0.15);
+  --status-backlog: oklch(0.5 0 0);
+  --status-in-progress: oklch(0.7 0.15 70);
+  --status-waiting: oklch(0.65 0.18 50);
+
+  /* Shadow tokens */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Transition tokens */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease-out;
 }
 
 /* Apply dark mode immediately based on system preference (before JS runs) */
@@ -215,6 +253,26 @@
     /* Running indicator - Purple */
     --running-indicator: oklch(0.6 0.25 265);
     --running-indicator-text: oklch(0.65 0.22 265);
+
+    /* Status colors - Dark mode */
+    --status-success: oklch(0.65 0.2 140);
+    --status-success-bg: oklch(0.65 0.2 140 / 0.2);
+    --status-warning: oklch(0.75 0.15 70);
+    --status-warning-bg: oklch(0.75 0.15 70 / 0.2);
+    --status-error: oklch(0.65 0.22 25);
+    --status-error-bg: oklch(0.65 0.22 25 / 0.2);
+    --status-info: oklch(0.65 0.2 230);
+    --status-info-bg: oklch(0.65 0.2 230 / 0.2);
+    --status-backlog: oklch(0.6 0 0);
+    --status-in-progress: oklch(0.75 0.15 70);
+    --status-waiting: oklch(0.7 0.18 50);
+
+    /* Shadow tokens - darker for dark mode */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -344,6 +402,26 @@
   /* Running indicator - Purple */
   --running-indicator: oklch(0.6 0.25 265);
   --running-indicator-text: oklch(0.65 0.22 265);
+
+  /* Status colors - Dark mode */
+  --status-success: oklch(0.65 0.2 140);
+  --status-success-bg: oklch(0.65 0.2 140 / 0.2);
+  --status-warning: oklch(0.75 0.15 70);
+  --status-warning-bg: oklch(0.75 0.15 70 / 0.2);
+  --status-error: oklch(0.65 0.22 25);
+  --status-error-bg: oklch(0.65 0.22 25 / 0.2);
+  --status-info: oklch(0.65 0.2 230);
+  --status-info-bg: oklch(0.65 0.2 230 / 0.2);
+  --status-backlog: oklch(0.6 0 0);
+  --status-in-progress: oklch(0.75 0.15 70);
+  --status-waiting: oklch(0.7 0.18 50);
+
+  /* Shadow tokens - darker for dark mode */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 .retro {

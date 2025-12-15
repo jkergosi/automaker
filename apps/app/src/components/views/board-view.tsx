@@ -110,11 +110,11 @@ import { useWindowState } from "@/hooks/use-window-state";
 
 type ColumnId = Feature["status"];
 
-const COLUMNS: { id: ColumnId; title: string; color: string }[] = [
-  { id: "backlog", title: "Backlog", color: "bg-zinc-500" },
-  { id: "in_progress", title: "In Progress", color: "bg-yellow-500" },
-  { id: "waiting_approval", title: "Waiting Approval", color: "bg-orange-500" },
-  { id: "verified", title: "Verified", color: "bg-green-500" },
+const COLUMNS: { id: ColumnId; title: string; colorClass: string }[] = [
+  { id: "backlog", title: "Backlog", colorClass: "bg-[var(--status-backlog)]" },
+  { id: "in_progress", title: "In Progress", colorClass: "bg-[var(--status-in-progress)]" },
+  { id: "waiting_approval", title: "Waiting Approval", colorClass: "bg-[var(--status-waiting)]" },
+  { id: "verified", title: "Verified", colorClass: "bg-[var(--status-success)]" },
 ];
 
 type ModelOption = {
@@ -2008,7 +2008,7 @@ export function BoardView() {
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex gap-4 h-full min-w-max">
+                <div className="flex gap-5 h-full min-w-max py-1">
                   {COLUMNS.map((column) => {
                     const columnFeatures = getColumnFeatures(column.id);
                     return (
@@ -2016,7 +2016,7 @@ export function BoardView() {
                         key={column.id}
                         id={column.id}
                         title={column.title}
-                        color={column.color}
+                        colorClass={column.colorClass}
                         count={columnFeatures.length}
                         opacity={backgroundSettings.columnOpacity}
                         showBorder={backgroundSettings.columnBorderEnabled}
@@ -2131,14 +2131,17 @@ export function BoardView() {
                   })}
                 </div>
 
-                <DragOverlay>
+                <DragOverlay dropAnimation={{
+                  duration: 200,
+                  easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                }}>
                   {activeFeature && (
-                    <Card className="w-72 opacity-90 rotate-3 shadow-xl">
+                    <Card className="w-72 rotate-2 shadow-2xl shadow-black/25 border-primary/50 bg-card/95 backdrop-blur-sm transition-transform">
                       <CardHeader className="p-3">
-                        <CardTitle className="text-sm">
+                        <CardTitle className="text-sm font-medium line-clamp-2">
                           {activeFeature.description}
                         </CardTitle>
-                        <CardDescription className="text-xs">
+                        <CardDescription className="text-xs text-muted-foreground">
                           {activeFeature.category}
                         </CardDescription>
                       </CardHeader>

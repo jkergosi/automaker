@@ -8,19 +8,19 @@ import type { ReactNode } from "react";
 interface KanbanColumnProps {
   id: string;
   title: string;
-  color: string;
+  colorClass: string;
   count: number;
   children: ReactNode;
   headerAction?: ReactNode;
-  opacity?: number; // Opacity percentage (0-100) - only affects background
-  showBorder?: boolean; // Whether to show column border
-  hideScrollbar?: boolean; // Whether to hide the column scrollbar
+  opacity?: number;
+  showBorder?: boolean;
+  hideScrollbar?: boolean;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
   id,
   title,
-  color,
+  colorClass,
   count,
   children,
   headerAction,
@@ -34,45 +34,53 @@ export const KanbanColumn = memo(function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative flex flex-col h-full rounded-lg transition-colors w-72",
-        showBorder && "border border-border"
+        "relative flex flex-col h-full rounded-xl transition-all duration-200 w-72",
+        showBorder && "border border-border/60",
+        isOver && "ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
       )}
       data-testid={`kanban-column-${id}`}
     >
-      {/* Background layer with opacity - only this layer is affected by opacity */}
+      {/* Background layer with opacity */}
       <div
         className={cn(
-          "absolute inset-0 rounded-lg backdrop-blur-sm transition-colors",
-          isOver ? "bg-accent" : "bg-card"
+          "absolute inset-0 rounded-xl backdrop-blur-sm transition-colors duration-200",
+          isOver ? "bg-accent/80" : "bg-card/80"
         )}
         style={{ opacity: opacity / 100 }}
       />
 
-      {/* Column Header - positioned above the background */}
+      {/* Column Header */}
       <div
         className={cn(
-          "relative z-10 flex items-center gap-2 p-3",
-          showBorder && "border-b border-border"
+          "relative z-10 flex items-center gap-3 px-3 py-2.5",
+          showBorder && "border-b border-border/40"
         )}
       >
-        <div className={cn("w-3 h-3 rounded-full", color)} />
-        <h3 className="font-medium text-sm flex-1">{title}</h3>
+        <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", colorClass)} />
+        <h3 className="font-semibold text-sm text-foreground/90 flex-1 tracking-tight">{title}</h3>
         {headerAction}
-        <span className="text-xs text-muted-foreground bg-background px-2 py-0.5 rounded-full">
+        <span className="text-xs font-medium text-muted-foreground/80 bg-muted/50 px-2 py-0.5 rounded-md tabular-nums">
           {count}
         </span>
       </div>
 
-      {/* Column Content - positioned above the background */}
+      {/* Column Content */}
       <div
         className={cn(
-          "relative z-10 flex-1 overflow-y-auto p-2 space-y-2",
+          "relative z-10 flex-1 overflow-y-auto p-2 space-y-2.5",
           hideScrollbar &&
-            "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+          // Smooth scrolling
+          "scroll-smooth"
         )}
       >
         {children}
       </div>
+
+      {/* Drop zone indicator when dragging over */}
+      {isOver && (
+        <div className="absolute inset-0 rounded-xl bg-primary/5 pointer-events-none z-5 border-2 border-dashed border-primary/20" />
+      )}
     </div>
   );
 });

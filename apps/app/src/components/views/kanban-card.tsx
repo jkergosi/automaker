@@ -57,7 +57,6 @@ import {
   ChevronDown,
   ChevronUp,
   Brain,
-  Flag,
 } from "lucide-react";
 import { CountUpTimer } from "@/components/ui/count-up-timer";
 import { getElectronAPI } from "@/lib/electron";
@@ -90,33 +89,6 @@ function formatThinkingLevel(level: ThinkingLevel | undefined): string {
   return labels[level];
 }
 
-/**
- * Formats priority for display
- */
-function formatPriority(priority: number | undefined): string | null {
-  if (!priority) return null;
-  const labels: Record<number, string> = {
-    1: "High",
-    2: "Medium",
-    3: "Low",
-  };
-  return labels[priority] || null;
-}
-
-/**
- * Gets priority badge color classes
- */
-function getPriorityBadgeClasses(priority: number | undefined): string {
-  if (priority === 1) {
-    return "bg-red-500/20 border border-red-500/50 text-red-400";
-  } else if (priority === 2) {
-    return "bg-yellow-500/20 border border-yellow-500/50 text-yellow-400";
-  } else if (priority === 3) {
-    return "bg-blue-500/20 border border-blue-500/50 text-blue-400";
-  }
-  return "";
-}
-
 interface KanbanCardProps {
   feature: Feature;
   onEdit: () => void;
@@ -134,17 +106,11 @@ interface KanbanCardProps {
   hasContext?: boolean;
   isCurrentAutoTask?: boolean;
   shortcutKey?: string;
-  /** Context content for extracting progress info */
   contextContent?: string;
-  /** Feature summary from agent completion */
   summary?: string;
-  /** Opacity percentage (0-100) */
   opacity?: number;
-  /** Whether to use glassmorphism (backdrop-blur) effect */
   glassmorphism?: boolean;
-  /** Whether to show card borders */
   cardBorderEnabled?: boolean;
-  /** Card border opacity percentage (0-100) */
   cardBorderOpacity?: number;
 }
 
@@ -180,16 +146,13 @@ export const KanbanCard = memo(function KanbanCard({
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const { kanbanCardDetailLevel } = useAppStore();
 
-  // Check if feature has worktree
   const hasWorktree = !!feature.branchName;
 
-  // Helper functions to check what should be shown based on detail level
   const showSteps =
     kanbanCardDetailLevel === "standard" ||
     kanbanCardDetailLevel === "detailed";
   const showAgentInfo = kanbanCardDetailLevel === "detailed";
 
-  // Helper to check if "just finished" badge should be shown (within 2 minutes)
   const isJustFinished = useMemo(() => {
     if (
       !feature.justFinishedAt ||
@@ -199,26 +162,23 @@ export const KanbanCard = memo(function KanbanCard({
       return false;
     }
     const finishedTime = new Date(feature.justFinishedAt).getTime();
-    const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const twoMinutes = 2 * 60 * 1000;
     return currentTime - finishedTime < twoMinutes;
   }, [feature.justFinishedAt, feature.status, feature.error, currentTime]);
 
-  // Update current time periodically to check if badge should be hidden
   useEffect(() => {
     if (!feature.justFinishedAt || feature.status !== "waiting_approval") {
       return;
     }
 
     const finishedTime = new Date(feature.justFinishedAt).getTime();
-    const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const twoMinutes = 2 * 60 * 1000;
     const timeRemaining = twoMinutes - (currentTime - finishedTime);
 
     if (timeRemaining <= 0) {
-      // Already past 2 minutes
       return;
     }
 
-    // Update time every second to check if 2 minutes have passed
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -226,45 +186,14 @@ export const KanbanCard = memo(function KanbanCard({
     return () => clearInterval(interval);
   }, [feature.justFinishedAt, feature.status, currentTime]);
 
-  // Calculate priority badge position
-  const priorityLabel = formatPriority(feature.priority);
-  const hasPriority = !!priorityLabel;
-
-  // Calculate top position for badges (stacking vertically)
-  const getBadgeTopPosition = (badgeIndex: number) => {
-    return badgeIndex === 0
-      ? "top-2"
-      : badgeIndex === 1
-      ? "top-8"
-      : badgeIndex === 2
-      ? "top-14"
-      : "top-20";
-  };
-
-  // Determine badge positions (must be after isJustFinished is defined)
-  let badgeIndex = 0;
-  const priorityBadgeIndex = hasPriority ? badgeIndex++ : -1;
-  const skipTestsBadgeIndex =
-    feature.skipTests && !feature.error ? badgeIndex++ : -1;
-  const errorBadgeIndex = feature.error ? badgeIndex++ : -1;
-  const justFinishedBadgeIndex = isJustFinished ? badgeIndex++ : -1;
-  const branchBadgeIndex =
-    hasWorktree && !isCurrentAutoTask ? badgeIndex++ : -1;
-
-  // Total number of badges displayed
-  const totalBadgeCount = badgeIndex;
-
-  // Load context file for in_progress, waiting_approval, and verified features
   useEffect(() => {
     const loadContext = async () => {
-      // Use provided context or load from file
       if (contextContent) {
         const info = parseAgentContext(contextContent);
         setAgentInfo(info);
         return;
       }
 
-      // Only load for non-backlog features
       if (feature.status === "backlog") {
         setAgentInfo(null);
         return;
@@ -276,7 +205,6 @@ export const KanbanCard = memo(function KanbanCard({
         const currentProject = (window as any).__currentProject;
         if (!currentProject?.path) return;
 
-        // Use features API to get agent output
         if (api.features) {
           const result = await api.features.getAgentOutput(
             currentProject.path,
@@ -288,7 +216,6 @@ export const KanbanCard = memo(function KanbanCard({
             setAgentInfo(info);
           }
         } else {
-          // Fallback to direct file read for backward compatibility
           const contextPath = `${currentProject.path}/.automaker/features/${feature.id}/agent-output.md`;
           const result = await api.readFile(contextPath);
 
@@ -298,14 +225,12 @@ export const KanbanCard = memo(function KanbanCard({
           }
         }
       } catch {
-        // Context file might not exist
         console.debug("[KanbanCard] No context file for feature:", feature.id);
       }
     };
 
     loadContext();
 
-    // Reload context periodically while feature is running
     if (isCurrentAutoTask) {
       const interval = setInterval(loadContext, 3000);
       return () => clearInterval(interval);
@@ -321,12 +246,6 @@ export const KanbanCard = memo(function KanbanCard({
     onDelete();
   };
 
-  // Dragging logic:
-  // - Backlog items can always be dragged
-  // - skipTests items can be dragged even when in_progress or verified (unless currently running)
-  // - waiting_approval items can always be dragged (to allow manual verification via drag)
-  // - verified items can always be dragged (to allow moving back to waiting_approval or backlog)
-  // - Non-skipTests (TDD) items in progress cannot be dragged (they are running)
   const isDraggable =
     feature.status === "backlog" ||
     feature.status === "waiting_approval" ||
@@ -350,15 +269,11 @@ export const KanbanCard = memo(function KanbanCard({
     opacity: isDragging ? 0.5 : undefined,
   };
 
-  // Calculate border style based on enabled state and opacity
   const borderStyle: React.CSSProperties = { ...style };
   if (!cardBorderEnabled) {
     (borderStyle as Record<string, string>).borderWidth = "0px";
     (borderStyle as Record<string, string>).borderColor = "transparent";
   } else if (cardBorderOpacity !== 100) {
-    // Apply border opacity using color-mix to blend the border color with transparent
-    // The --border variable uses oklch format, so we use color-mix in oklch space
-    // Ensure border width is set (1px is the default Tailwind border width)
     (borderStyle as Record<string, string>).borderWidth = "1px";
     (
       borderStyle as Record<string, string>
@@ -370,28 +285,27 @@ export const KanbanCard = memo(function KanbanCard({
       ref={setNodeRef}
       style={isCurrentAutoTask ? style : borderStyle}
       className={cn(
-        "cursor-grab active:cursor-grabbing transition-all relative kanban-card-content select-none",
-        // Apply border class when border is enabled and opacity is 100%
-        // When opacity is not 100%, we use inline styles for border color
-        // Skip border classes when animated border is active (isCurrentAutoTask)
+        "cursor-grab active:cursor-grabbing relative kanban-card-content select-none",
+        "transition-all duration-200 ease-out",
+        // Premium shadow system
+        "shadow-sm hover:shadow-md hover:shadow-black/10",
+        // Subtle lift on hover
+        "hover:-translate-y-0.5",
         !isCurrentAutoTask &&
           cardBorderEnabled &&
           cardBorderOpacity === 100 &&
-          "border-border",
-        // When border is enabled but opacity is not 100%, we still need border width
+          "border-border/50",
         !isCurrentAutoTask &&
           cardBorderEnabled &&
           cardBorderOpacity !== 100 &&
           "border",
-        // Remove default background when using opacity overlay
         !isDragging && "bg-transparent",
-        // Remove default backdrop-blur-sm from Card component when glassmorphism is disabled
         !glassmorphism && "backdrop-blur-[0px]!",
-        isDragging && "scale-105 shadow-lg",
-        // Error state border (only when not in progress)
+        isDragging && "scale-105 shadow-xl shadow-black/20 rotate-1",
+        // Error state - using CSS variable
         feature.error &&
           !isCurrentAutoTask &&
-          "border-red-500 border-2 shadow-red-500/30 shadow-lg",
+          "border-[var(--status-error)] border-2 shadow-[var(--status-error-bg)] shadow-lg",
         !isDraggable && "cursor-default"
       )}
       data-testid={`kanban-card-${feature.id}`}
@@ -399,7 +313,7 @@ export const KanbanCard = memo(function KanbanCard({
       {...attributes}
       {...(isDraggable ? listeners : {})}
     >
-      {/* Background overlay with opacity - only affects background, not content */}
+      {/* Background overlay with opacity */}
       {!isDragging && (
         <div
           className={cn(
@@ -409,88 +323,85 @@ export const KanbanCard = memo(function KanbanCard({
           style={{ opacity: opacity / 100 }}
         />
       )}
-      {/* Priority badge */}
-      {hasPriority && (
-        <div
-          className={cn(
-            "absolute px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1 z-10",
-            getBadgeTopPosition(priorityBadgeIndex),
-            "left-2",
-            getPriorityBadgeClasses(feature.priority)
-          )}
-          data-testid={`priority-badge-${feature.id}`}
-          title={`Priority: ${priorityLabel}`}
-        >
-          <Flag className="w-3 h-3" />
-          <span>{priorityLabel}</span>
-        </div>
-      )}
-      {/* Skip Tests indicator badge */}
+
+      {/* Skip Tests (Manual) indicator badge */}
       {feature.skipTests && !feature.error && (
-        <div
-          className={cn(
-            "absolute px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1 z-10",
-            getBadgeTopPosition(skipTestsBadgeIndex),
-            "left-2",
-            "bg-orange-500/20 border border-orange-500/50 text-orange-400"
-          )}
-          data-testid={`skip-tests-badge-${feature.id}`}
-          title="Manual verification required"
-        >
-          <Hand className="w-3 h-3" />
-          <span>Manual</span>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  "absolute px-1.5 py-0.5 text-[10px] font-medium rounded-md flex items-center gap-1 z-10",
+                  "top-2 left-2",
+                  "bg-[var(--status-warning-bg)] border border-[var(--status-warning)]/40 text-[var(--status-warning)]"
+                )}
+                data-testid={`skip-tests-badge-${feature.id}`}
+              >
+                <Hand className="w-3 h-3" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">
+              <p>Manual verification required</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
+
       {/* Error indicator badge */}
       {feature.error && (
-        <div
-          className={cn(
-            "absolute px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1 z-10",
-            getBadgeTopPosition(errorBadgeIndex),
-            "left-2",
-            "bg-red-500/20 border border-red-500/50 text-red-400"
-          )}
-          data-testid={`error-badge-${feature.id}`}
-          title={feature.error}
-        >
-          <AlertCircle className="w-3 h-3" />
-          <span>Errored</span>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  "absolute px-1.5 py-0.5 text-[10px] font-medium rounded-md flex items-center gap-1 z-10",
+                  "top-2 left-2",
+                  "bg-[var(--status-error-bg)] border border-[var(--status-error)]/40 text-[var(--status-error)]"
+                )}
+                data-testid={`error-badge-${feature.id}`}
+              >
+                <AlertCircle className="w-3 h-3" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs max-w-[250px]">
+              <p>{feature.error}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
-      {/* Just Finished indicator badge - shows when agent just completed work (for 2 minutes) */}
+
+      {/* Just Finished indicator badge */}
       {isJustFinished && (
         <div
           className={cn(
-            "absolute px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1 z-10",
-            getBadgeTopPosition(justFinishedBadgeIndex),
-            "left-2",
-            "bg-green-500/20 border border-green-500/50 text-green-400 animate-pulse"
+            "absolute px-1.5 py-0.5 text-[10px] font-medium rounded-md flex items-center gap-1 z-10",
+            feature.skipTests ? "top-8 left-2" : "top-2 left-2",
+            "bg-[var(--status-success-bg)] border border-[var(--status-success)]/40 text-[var(--status-success)]",
+            "animate-pulse"
           )}
           data-testid={`just-finished-badge-${feature.id}`}
           title="Agent just finished working on this feature"
         >
           <Sparkles className="w-3 h-3" />
-          <span>Fresh Baked</span>
         </div>
       )}
-      {/* Branch badge - show when feature has a worktree */}
+
+      {/* Branch badge */}
       {hasWorktree && !isCurrentAutoTask && (
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "absolute px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1 z-10 cursor-default",
-                  "bg-purple-500/20 border border-purple-500/50 text-purple-400",
-                  getBadgeTopPosition(branchBadgeIndex),
-                  "left-2"
+                  "absolute px-1.5 py-0.5 text-[10px] font-medium rounded-md flex items-center gap-1 z-10 cursor-default",
+                  "bg-[var(--status-info-bg)] border border-[var(--status-info)]/40 text-[var(--status-info)]",
+                  feature.error || feature.skipTests || isJustFinished
+                    ? "top-8 left-2"
+                    : "top-2 left-2"
                 )}
                 data-testid={`branch-badge-${feature.id}`}
               >
                 <GitBranch className="w-3 h-3 shrink-0" />
-                <span className="truncate max-w-[80px]">
-                  {feature.branchName?.replace("feature/", "")}
-                </span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[300px]">
@@ -501,27 +412,26 @@ export const KanbanCard = memo(function KanbanCard({
           </Tooltip>
         </TooltipProvider>
       )}
+
       <CardHeader
         className={cn(
-          "p-3 pb-2 block", // Reset grid layout to block for custom kanban card layout
-          // Add extra top padding when badges are present to prevent text overlap
-          // Calculate padding based on number of badges
-          totalBadgeCount === 1 && "pt-10",
-          totalBadgeCount === 2 && "pt-14",
-          totalBadgeCount === 3 && "pt-20",
-          totalBadgeCount >= 4 && "pt-24"
+          "p-3 pb-2 block",
+          (feature.skipTests || feature.error || isJustFinished) && "pt-10",
+          hasWorktree &&
+            (feature.skipTests || feature.error || isJustFinished) &&
+            "pt-14"
         )}
       >
         {isCurrentAutoTask && (
-          <div className="absolute top-2 right-2 flex items-center justify-center gap-2 bg-running-indicator/20 border border-running-indicator rounded px-2 py-0.5">
-            <Loader2 className="w-4 h-4 text-running-indicator animate-spin" />
-            <span className="text-xs text-running-indicator font-medium">
+          <div className="absolute top-2 right-2 flex items-center justify-center gap-2 bg-[var(--status-in-progress)]/15 border border-[var(--status-in-progress)]/50 rounded-md px-2 py-0.5">
+            <Loader2 className="w-3.5 h-3.5 text-[var(--status-in-progress)] animate-spin" />
+            <span className="text-[10px] text-[var(--status-in-progress)] font-medium">
               {formatModelName(feature.model ?? DEFAULT_MODEL)}
             </span>
             {feature.startedAt && (
               <CountUpTimer
                 startedAt={feature.startedAt}
-                className="text-running-indicator"
+                className="text-[var(--status-in-progress)] text-[10px]"
               />
             )}
           </div>
@@ -533,21 +443,22 @@ export const KanbanCard = memo(function KanbanCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-white/10"
+                  className="h-6 w-6 p-0 hover:bg-muted/80 rounded-md"
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                   data-testid={`menu-${feature.id}`}
                 >
-                  <MoreVertical className="w-4 h-4" />
+                  <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-36">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit();
                   }}
                   data-testid={`edit-feature-${feature.id}`}
+                  className="text-xs"
                 >
                   <Edit className="w-3 h-3 mr-2" />
                   Edit
@@ -559,13 +470,14 @@ export const KanbanCard = memo(function KanbanCard({
                       onViewOutput();
                     }}
                     data-testid={`view-logs-${feature.id}`}
+                    className="text-xs"
                   >
                     <FileText className="w-3 h-3 mr-2" />
-                    Logs
+                    View Logs
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="text-xs text-destructive focus:text-destructive"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteClick(e as unknown as React.MouseEvent);
@@ -582,22 +494,21 @@ export const KanbanCard = memo(function KanbanCard({
         <div className="flex items-start gap-2">
           {isDraggable && (
             <div
-              className="-ml-2 -mt-1 p-2 touch-none"
+              className="-ml-2 -mt-1 p-2 touch-none opacity-40 hover:opacity-70 transition-opacity"
               data-testid={`drag-handle-${feature.id}`}
             >
-              <GripVertical className="w-4 h-4 text-muted-foreground" />
+              <GripVertical className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
           )}
           <div className="flex-1 min-w-0 overflow-hidden">
             <CardTitle
               className={cn(
-                "text-sm leading-tight break-words hyphens-auto overflow-hidden",
+                "text-sm leading-snug break-words hyphens-auto overflow-hidden font-medium text-foreground/90",
                 !isDescriptionExpanded && "line-clamp-3"
               )}
             >
               {feature.description || feature.summary || feature.id}
             </CardTitle>
-            {/* Show More/Less toggle - only show when description is likely truncated */}
             {(feature.description || feature.summary || "").length > 100 && (
               <button
                 onClick={(e) => {
@@ -605,41 +516,42 @@ export const KanbanCard = memo(function KanbanCard({
                   setIsDescriptionExpanded(!isDescriptionExpanded);
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground mt-1 transition-colors"
+                className="flex items-center gap-0.5 text-[10px] text-muted-foreground/70 hover:text-muted-foreground mt-1.5 transition-colors"
                 data-testid={`toggle-description-${feature.id}`}
               >
                 {isDescriptionExpanded ? (
                   <>
                     <ChevronUp className="w-3 h-3" />
-                    <span>Show Less</span>
+                    <span>Less</span>
                   </>
                 ) : (
                   <>
                     <ChevronDown className="w-3 h-3" />
-                    <span>Show More</span>
+                    <span>More</span>
                   </>
                 )}
               </button>
             )}
-            <CardDescription className="text-xs mt-1 truncate">
+            <CardDescription className="text-[11px] mt-1.5 truncate text-muted-foreground/70">
               {feature.category}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="p-3 pt-0">
-        {/* Steps Preview - Show in Standard and Detailed modes */}
+        {/* Steps Preview */}
         {showSteps && feature.steps && feature.steps.length > 0 && (
-          <div className="mb-3 space-y-1">
+          <div className="mb-3 space-y-1.5">
             {feature.steps.slice(0, 3).map((step, index) => (
               <div
                 key={index}
-                className="flex items-start gap-2 text-xs text-muted-foreground"
+                className="flex items-start gap-2 text-[11px] text-muted-foreground/80"
               >
                 {feature.status === "verified" ? (
-                  <CheckCircle2 className="w-3 h-3 mt-0.5 text-green-500 shrink-0" />
+                  <CheckCircle2 className="w-3 h-3 mt-0.5 text-[var(--status-success)] shrink-0" />
                 ) : (
-                  <Circle className="w-3 h-3 mt-0.5 shrink-0" />
+                  <Circle className="w-3 h-3 mt-0.5 shrink-0 text-muted-foreground/50" />
                 )}
                 <span className="break-words hyphens-auto line-clamp-2 leading-relaxed">
                   {step}
@@ -647,18 +559,18 @@ export const KanbanCard = memo(function KanbanCard({
               </div>
             ))}
             {feature.steps.length > 3 && (
-              <p className="text-xs text-muted-foreground pl-5">
-                +{feature.steps.length - 3} more steps
+              <p className="text-[10px] text-muted-foreground/60 pl-5">
+                +{feature.steps.length - 3} more
               </p>
             )}
           </div>
         )}
 
-        {/* Model/Preset Info for Backlog Cards - Show in Detailed mode */}
+        {/* Model/Preset Info for Backlog Cards */}
         {showAgentInfo && feature.status === "backlog" && (
           <div className="mb-3 space-y-2 overflow-hidden">
-            <div className="flex items-center gap-2 text-xs flex-wrap">
-              <div className="flex items-center gap-1 text-cyan-400">
+            <div className="flex items-center gap-2 text-[11px] flex-wrap">
+              <div className="flex items-center gap-1 text-[var(--status-info)]">
                 <Cpu className="w-3 h-3" />
                 <span className="font-medium">
                   {formatModelName(feature.model ?? DEFAULT_MODEL)}
@@ -676,13 +588,12 @@ export const KanbanCard = memo(function KanbanCard({
           </div>
         )}
 
-        {/* Agent Info Panel - shows for in_progress, waiting_approval, verified */}
-        {/* Detailed mode: Show all agent info */}
+        {/* Agent Info Panel */}
         {showAgentInfo && feature.status !== "backlog" && agentInfo && (
           <div className="mb-3 space-y-2 overflow-hidden">
             {/* Model & Phase */}
-            <div className="flex items-center gap-2 text-xs flex-wrap">
-              <div className="flex items-center gap-1 text-cyan-400">
+            <div className="flex items-center gap-2 text-[11px] flex-wrap">
+              <div className="flex items-center gap-1 text-[var(--status-info)]">
                 <Cpu className="w-3 h-3" />
                 <span className="font-medium">
                   {formatModelName(feature.model ?? DEFAULT_MODEL)}
@@ -691,13 +602,13 @@ export const KanbanCard = memo(function KanbanCard({
               {agentInfo.currentPhase && (
                 <div
                   className={cn(
-                    "px-1.5 py-0.5 rounded text-[10px] font-medium",
+                    "px-1.5 py-0.5 rounded-md text-[10px] font-medium",
                     agentInfo.currentPhase === "planning" &&
-                      "bg-blue-500/20 text-blue-400",
+                      "bg-[var(--status-info-bg)] text-[var(--status-info)]",
                     agentInfo.currentPhase === "action" &&
-                      "bg-amber-500/20 text-amber-400",
+                      "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
                     agentInfo.currentPhase === "verification" &&
-                      "bg-green-500/20 text-green-400"
+                      "bg-[var(--status-success-bg)] text-[var(--status-success)]"
                   )}
                 >
                   {agentInfo.currentPhase}
@@ -705,10 +616,10 @@ export const KanbanCard = memo(function KanbanCard({
               )}
             </div>
 
-            {/* Task List Progress (if todos found) */}
+            {/* Task List Progress */}
             {agentInfo.todos.length > 0 && (
               <div className="space-y-1">
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
                   <ListTodo className="w-3 h-3" />
                   <span>
                     {
@@ -725,20 +636,20 @@ export const KanbanCard = memo(function KanbanCard({
                       className="flex items-center gap-1.5 text-[10px]"
                     >
                       {todo.status === "completed" ? (
-                        <CheckCircle2 className="w-2.5 h-2.5 text-green-500 shrink-0" />
+                        <CheckCircle2 className="w-2.5 h-2.5 text-[var(--status-success)] shrink-0" />
                       ) : todo.status === "in_progress" ? (
-                        <Loader2 className="w-2.5 h-2.5 text-amber-400 animate-spin shrink-0" />
+                        <Loader2 className="w-2.5 h-2.5 text-[var(--status-warning)] animate-spin shrink-0" />
                       ) : (
-                        <Circle className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+                        <Circle className="w-2.5 h-2.5 text-muted-foreground/50 shrink-0" />
                       )}
                       <span
                         className={cn(
                           "break-words hyphens-auto line-clamp-2 leading-relaxed",
                           todo.status === "completed" &&
-                            "text-muted-foreground line-through",
-                          todo.status === "in_progress" && "text-amber-400",
+                            "text-muted-foreground/60 line-through",
+                          todo.status === "in_progress" && "text-[var(--status-warning)]",
                           todo.status === "pending" &&
-                            "text-foreground-secondary"
+                            "text-muted-foreground/80"
                         )}
                       >
                         {todo.content}
@@ -746,7 +657,7 @@ export const KanbanCard = memo(function KanbanCard({
                     </div>
                   ))}
                   {agentInfo.todos.length > 3 && (
-                    <p className="text-[10px] text-muted-foreground pl-4">
+                    <p className="text-[10px] text-muted-foreground/60 pl-4">
                       +{agentInfo.todos.length - 3} more
                     </p>
                   )}
@@ -754,16 +665,16 @@ export const KanbanCard = memo(function KanbanCard({
               </div>
             )}
 
-            {/* Summary for waiting_approval and verified - prioritize feature.summary from UpdateFeatureStatus */}
+            {/* Summary for waiting_approval and verified */}
             {(feature.status === "waiting_approval" ||
               feature.status === "verified") && (
               <>
                 {(feature.summary || summary || agentInfo.summary) && (
-                  <div className="space-y-1 pt-1 border-t border-border-glass overflow-hidden">
+                  <div className="space-y-1.5 pt-2 border-t border-border/30 overflow-hidden">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1 text-[10px] text-green-400 min-w-0">
+                      <div className="flex items-center gap-1 text-[10px] text-[var(--status-success)] min-w-0">
                         <Sparkles className="w-3 h-3 shrink-0" />
-                        <span className="truncate">Summary</span>
+                        <span className="truncate font-medium">Summary</span>
                       </div>
                       <button
                         onClick={(e) => {
@@ -771,31 +682,30 @@ export const KanbanCard = memo(function KanbanCard({
                           setIsSummaryDialogOpen(true);
                         }}
                         onPointerDown={(e) => e.stopPropagation()}
-                        className="p-0.5 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground shrink-0"
+                        className="p-0.5 rounded-md hover:bg-muted/80 transition-colors text-muted-foreground/60 hover:text-muted-foreground shrink-0"
                         title="View full summary"
                         data-testid={`expand-summary-${feature.id}`}
                       >
                         <Expand className="w-3 h-3" />
                       </button>
                     </div>
-                    <p className="text-[10px] text-foreground-secondary line-clamp-3 break-words hyphens-auto leading-relaxed overflow-hidden">
+                    <p className="text-[10px] text-muted-foreground/70 line-clamp-3 break-words hyphens-auto leading-relaxed overflow-hidden">
                       {feature.summary || summary || agentInfo.summary}
                     </p>
                   </div>
                 )}
-                {/* Show tool count even without summary */}
                 {!feature.summary &&
                   !summary &&
                   !agentInfo.summary &&
                   agentInfo.toolCallCount > 0 && (
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground pt-1 border-t border-border-glass">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground/60 pt-2 border-t border-border/30">
                       <span className="flex items-center gap-1">
                         <Wrench className="w-2.5 h-2.5" />
                         {agentInfo.toolCallCount} tool calls
                       </span>
                       {agentInfo.todos.length > 0 && (
                         <span className="flex items-center gap-1">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-green-500" />
+                          <CheckCircle2 className="w-2.5 h-2.5 text-[var(--status-success)]" />
                           {
                             agentInfo.todos.filter(
                               (t) => t.status === "completed"
@@ -812,14 +722,14 @@ export const KanbanCard = memo(function KanbanCard({
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {isCurrentAutoTask && (
             <>
               {onViewOutput && (
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs bg-action-view hover:bg-action-view-hover"
+                  className="flex-1 h-7 text-[11px] bg-[var(--status-info)] hover:bg-[var(--status-info)]/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewOutput();
@@ -831,7 +741,7 @@ export const KanbanCard = memo(function KanbanCard({
                   Logs
                   {shortcutKey && (
                     <span
-                      className="ml-2 px-1.5 py-0.5 text-[10px] font-mono rounded bg-primary-foreground/10 border border-primary-foreground/20"
+                      className="ml-1.5 px-1 py-0.5 text-[9px] font-mono rounded bg-white/20"
                       data-testid={`shortcut-key-${feature.id}`}
                     >
                       {shortcutKey}
@@ -843,7 +753,7 @@ export const KanbanCard = memo(function KanbanCard({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-7 text-[11px] px-2"
                   onClick={(e) => {
                     e.stopPropagation();
                     onForceStop();
@@ -851,20 +761,18 @@ export const KanbanCard = memo(function KanbanCard({
                   onPointerDown={(e) => e.stopPropagation()}
                   data-testid={`force-stop-${feature.id}`}
                 >
-                  <StopCircle className="w-3 h-3 mr-1" />
-                  Stop
+                  <StopCircle className="w-3 h-3" />
                 </Button>
               )}
             </>
           )}
           {!isCurrentAutoTask && feature.status === "in_progress" && (
             <>
-              {/* skipTests features show manual verify button */}
               {feature.skipTests && onManualVerify ? (
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs bg-primary hover:bg-primary/90"
+                  className="flex-1 h-7 text-[11px]"
                   onClick={(e) => {
                     e.stopPropagation();
                     onManualVerify();
@@ -879,7 +787,7 @@ export const KanbanCard = memo(function KanbanCard({
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs bg-action-verify hover:bg-action-verify-hover"
+                  className="flex-1 h-7 text-[11px] bg-[var(--status-success)] hover:bg-[var(--status-success)]/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     onResume();
@@ -894,7 +802,7 @@ export const KanbanCard = memo(function KanbanCard({
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs bg-action-verify hover:bg-action-verify-hover"
+                  className="flex-1 h-7 text-[11px] bg-[var(--status-success)] hover:bg-[var(--status-success)]/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     onVerify();
@@ -910,7 +818,7 @@ export const KanbanCard = memo(function KanbanCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-7 text-[11px] px-2"
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewOutput();
@@ -918,20 +826,18 @@ export const KanbanCard = memo(function KanbanCard({
                   onPointerDown={(e) => e.stopPropagation()}
                   data-testid={`view-output-inprogress-${feature.id}`}
                 >
-                  <FileText className="w-3 h-3 mr-1" />
-                  Logs
+                  <FileText className="w-3 h-3" />
                 </Button>
               )}
             </>
           )}
           {!isCurrentAutoTask && feature.status === "verified" && (
             <>
-              {/* Logs button if context exists */}
               {hasContext && onViewOutput && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-7 text-[11px] px-2"
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewOutput();
@@ -939,15 +845,13 @@ export const KanbanCard = memo(function KanbanCard({
                   onPointerDown={(e) => e.stopPropagation()}
                   data-testid={`view-output-verified-${feature.id}`}
                 >
-                  <FileText className="w-3 h-3 mr-1" />
-                  Logs
+                  <FileText className="w-3 h-3" />
                 </Button>
               )}
             </>
           )}
           {!isCurrentAutoTask && feature.status === "waiting_approval" && (
             <>
-              {/* Revert button - only show when worktree exists (icon only to save space) */}
               {hasWorktree && onRevert && (
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
@@ -955,7 +859,7 @@ export const KanbanCard = memo(function KanbanCard({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 shrink-0"
+                        className="h-7 w-7 p-0 text-[var(--status-error)] hover:text-[var(--status-error)] hover:bg-[var(--status-error-bg)] shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsRevertDialogOpen(true);
@@ -966,18 +870,17 @@ export const KanbanCard = memo(function KanbanCard({
                         <Undo2 className="w-3.5 h-3.5" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="top">
+                    <TooltipContent side="top" className="text-xs">
                       <p>Revert changes</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {/* Follow-up prompt button */}
               {onFollowUp && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="flex-1 h-7 text-xs min-w-0"
+                  className="flex-1 h-7 text-[11px] min-w-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     onFollowUp();
@@ -989,12 +892,11 @@ export const KanbanCard = memo(function KanbanCard({
                   <span className="truncate">Follow-up</span>
                 </Button>
               )}
-              {/* Merge button - only show when worktree exists */}
               {hasWorktree && onMerge && (
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs bg-purple-600 hover:bg-purple-700 min-w-0"
+                  className="flex-1 h-7 text-[11px] bg-[var(--status-info)] hover:bg-[var(--status-info)]/90 min-w-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     onMerge();
@@ -1007,12 +909,11 @@ export const KanbanCard = memo(function KanbanCard({
                   <span className="truncate">Merge</span>
                 </Button>
               )}
-              {/* Commit and verify button - show when no worktree */}
               {!hasWorktree && onCommit && (
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1 h-7 text-xs"
+                  className="flex-1 h-7 text-[11px]"
                   onClick={(e) => {
                     e.stopPropagation();
                     onCommit();
@@ -1048,7 +949,7 @@ export const KanbanCard = memo(function KanbanCard({
         >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-green-400" />
+              <Sparkles className="w-5 h-5 text-[var(--status-success)]" />
               Implementation Summary
             </DialogTitle>
             <DialogDescription
@@ -1064,7 +965,7 @@ export const KanbanCard = memo(function KanbanCard({
               })()}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-4 bg-card rounded-lg border border-border">
+          <div className="flex-1 overflow-y-auto p-4 bg-card rounded-lg border border-border/50">
             <Markdown>
               {feature.summary ||
                 summary ||
@@ -1088,7 +989,7 @@ export const KanbanCard = memo(function KanbanCard({
       <Dialog open={isRevertDialogOpen} onOpenChange={setIsRevertDialogOpen}>
         <DialogContent data-testid="revert-confirmation-dialog">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-400">
+            <DialogTitle className="flex items-center gap-2 text-[var(--status-error)]">
               <Undo2 className="w-5 h-5" />
               Revert Changes
             </DialogTitle>
@@ -1098,13 +999,13 @@ export const KanbanCard = memo(function KanbanCard({
               {feature.branchName && (
                 <span className="block mt-2 font-medium">
                   Branch{" "}
-                  <code className="bg-muted px-1 py-0.5 rounded">
+                  <code className="bg-muted px-1.5 py-0.5 rounded text-[11px]">
                     {feature.branchName}
                   </code>{" "}
                   will be deleted.
                 </span>
               )}
-              <span className="block mt-2 text-red-400 font-medium">
+              <span className="block mt-2 text-[var(--status-error)] font-medium">
                 This action cannot be undone.
               </span>
             </DialogDescription>

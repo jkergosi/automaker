@@ -16,8 +16,12 @@ export function SettingsNavigation({
   onNavigate,
 }: SettingsNavigationProps) {
   return (
-    <nav className="hidden lg:block w-48 shrink-0 border-r border-border bg-card/50 backdrop-blur-sm">
-      <div className="sticky top-0 p-4 space-y-1">
+    <nav className={cn(
+      "hidden lg:block w-52 shrink-0",
+      "border-r border-border/50",
+      "bg-gradient-to-b from-card/80 via-card/60 to-card/40 backdrop-blur-xl"
+    )}>
+      <div className="sticky top-0 p-4 space-y-1.5">
         {navItems
           .filter((item) => item.id !== "danger" || currentProject)
           .map((item) => {
@@ -28,16 +32,32 @@ export function SettingsNavigation({
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left",
+                  "group w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ease-out text-left relative overflow-hidden",
                   isActive
-                    ? "bg-brand-500/10 text-brand-500 border border-brand-500/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    ? [
+                        "bg-gradient-to-r from-brand-500/15 via-brand-500/10 to-brand-600/5",
+                        "text-foreground",
+                        "border border-brand-500/25",
+                        "shadow-sm shadow-brand-500/5",
+                      ]
+                    : [
+                        "text-muted-foreground hover:text-foreground",
+                        "hover:bg-accent/50",
+                        "border border-transparent hover:border-border/40",
+                      ],
+                  "hover:scale-[1.01] active:scale-[0.98]"
                 )}
               >
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-brand-400 via-brand-500 to-brand-600 rounded-r-full" />
+                )}
                 <Icon
                   className={cn(
-                    "w-4 h-4 shrink-0",
-                    isActive ? "text-brand-500" : ""
+                    "w-4 h-4 shrink-0 transition-all duration-200",
+                    isActive
+                      ? "text-brand-500"
+                      : "group-hover:text-brand-400 group-hover:scale-110"
                   )}
                 />
                 <span className="truncate">{item.label}</span>

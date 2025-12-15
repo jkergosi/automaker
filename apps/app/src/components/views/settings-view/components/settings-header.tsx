@@ -1,4 +1,5 @@
 import { Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SettingsHeaderProps {
   title?: string;
@@ -10,15 +11,24 @@ export function SettingsHeader({
   description = "Configure your API keys and preferences",
 }: SettingsHeaderProps) {
   return (
-    <div className="shrink-0 border-b border-border bg-glass backdrop-blur-md">
+    <div className={cn(
+      "shrink-0",
+      "border-b border-border/50",
+      "bg-gradient-to-r from-card/90 via-card/70 to-card/80 backdrop-blur-xl"
+    )}>
       <div className="px-8 py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/20 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-primary-foreground" />
+        <div className="flex items-center gap-4">
+          <div className={cn(
+            "w-12 h-12 rounded-2xl flex items-center justify-center",
+            "bg-gradient-to-br from-brand-500 to-brand-600",
+            "shadow-lg shadow-brand-500/25",
+            "ring-1 ring-white/10"
+          )}>
+            <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{title}</h1>
+            <p className="text-sm text-muted-foreground/80 mt-0.5">{description}</p>
           </div>
         </div>
       </div>

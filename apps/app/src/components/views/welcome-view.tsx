@@ -530,17 +530,17 @@ export function WelcomeView() {
   return (
     <div className="flex-1 flex flex-col content-bg" data-testid="welcome-view">
       {/* Header Section */}
-      <div className="flex-shrink-0 border-b border-border bg-glass backdrop-blur-md">
+      <div className="shrink-0 border-b border-border bg-glass backdrop-blur-md">
         <div className="px-8 py-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-              <img src="/logo.png" alt="Automaker Logo" className="w-10 h-10" />
+          <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 border border-brand-500/20 flex items-center justify-center shadow-lg shadow-brand-500/10">
+              <img src="/logo.png" alt="Automaker Logo" className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
                 Welcome to Automaker
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Your autonomous AI development studio
               </p>
             </div>
@@ -550,24 +550,25 @@ export function WelcomeView() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+            {/* New Project Card */}
             <div
-              className="group relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-md hover:bg-card/70 hover:border-border-glass transition-all duration-200"
+              className="group relative rounded-xl border border-border bg-card/80 backdrop-blur-sm hover:bg-card hover:border-brand-500/30 hover:shadow-xl hover:shadow-brand-500/5 transition-all duration-300 hover:-translate-y-1"
               data-testid="new-project-card"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500/5 via-transparent to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="relative p-6 h-full flex flex-col">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 flex items-center justify-center group-hover:scale-105 group-hover:shadow-brand-500/40 transition-all duration-300 shrink-0">
                     <Plus className="w-6 h-6 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-foreground mb-1.5">
                       New Project
                     </h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       Create a new project from scratch with AI-powered
                       development
                     </p>
@@ -576,7 +577,7 @@ export function WelcomeView() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      className="w-full mt-4 bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-600 text-primary-foreground border-0"
+                      className="w-full mt-5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white border-0 shadow-md shadow-brand-500/20 hover:shadow-brand-500/30 transition-all"
                       data-testid="create-new-project"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -604,29 +605,30 @@ export function WelcomeView() {
               </div>
             </div>
 
+            {/* Open Project Card */}
             <div
-              className="group relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-md hover:bg-card/70 hover:border-border-glass transition-all duration-200 cursor-pointer"
+              className="group relative rounded-xl border border-border bg-card/80 backdrop-blur-sm hover:bg-card hover:border-blue-500/30 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 cursor-pointer hover:-translate-y-1"
               onClick={handleOpenProject}
               data-testid="open-project-card"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="relative p-6 h-full flex flex-col">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-lg bg-muted border border-border flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                    <FolderOpen className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center group-hover:bg-blue-500/10 group-hover:border-blue-500/30 group-hover:scale-105 transition-all duration-300 shrink-0">
+                    <FolderOpen className="w-6 h-6 text-muted-foreground group-hover:text-blue-500 transition-colors duration-300" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-foreground mb-1.5">
                       Open Project
                     </h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       Open an existing project folder to continue working
                     </p>
                   </div>
                 </div>
                 <Button
                   variant="secondary"
-                  className="w-full mt-4 bg-secondary hover:bg-secondary/80 text-foreground border border-border hover:border-border-glass"
+                  className="w-full mt-5 bg-secondary/80 hover:bg-secondary text-foreground border border-border hover:border-blue-500/30 transition-all"
                   data-testid="open-existing-project"
                 >
                   <FolderOpen className="w-4 h-4 mr-2" />
@@ -638,36 +640,39 @@ export function WelcomeView() {
 
           {/* Recent Projects */}
           {recentProjects.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-muted-foreground" />
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                </div>
                 <h2 className="text-lg font-semibold text-foreground">
                   Recent Projects
                 </h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentProjects.map((project) => (
+                {recentProjects.map((project, index) => (
                   <div
                     key={project.id}
-                    className="group relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-md hover:bg-card/70 hover:border-brand-500/50 transition-all duration-200 cursor-pointer"
+                    className="group relative rounded-xl border border-border bg-card/60 backdrop-blur-sm hover:bg-card hover:border-brand-500/40 hover:shadow-lg hover:shadow-brand-500/5 transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
                     onClick={() => handleRecentProjectClick(project)}
                     data-testid={`recent-project-${project.id}`}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-500/0 to-purple-600/0 group-hover:from-brand-500/5 group-hover:to-purple-600/5 transition-all"></div>
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500/0 to-purple-600/0 group-hover:from-brand-500/5 group-hover:to-purple-600/5 transition-all duration-300" />
                     <div className="relative p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center group-hover:border-brand-500/50 transition-colors">
-                          <Folder className="w-5 h-5 text-muted-foreground group-hover:text-brand-500 transition-colors" />
+                        <div className="w-10 h-10 rounded-lg bg-muted/80 border border-border flex items-center justify-center group-hover:bg-brand-500/10 group-hover:border-brand-500/30 transition-all duration-300 shrink-0">
+                          <Folder className="w-5 h-5 text-muted-foreground group-hover:text-brand-500 transition-colors duration-300" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate group-hover:text-brand-500 transition-colors">
+                          <p className="font-medium text-foreground truncate group-hover:text-brand-500 transition-colors duration-300">
                             {project.name}
                           </p>
-                          <p className="text-xs text-muted-foreground/70 truncate mt-0.5">
+                          <p className="text-xs text-muted-foreground/70 truncate mt-1">
                             {project.path}
                           </p>
                           {project.lastOpened && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1.5">
                               {new Date(
                                 project.lastOpened
                               ).toLocaleDateString()}
@@ -684,14 +689,14 @@ export function WelcomeView() {
 
           {/* Empty State for No Projects */}
           {recentProjects.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-16 text-center animate-in fade-in duration-500 delay-200">
+              <div className="w-20 h-20 rounded-2xl bg-muted/50 border border-border flex items-center justify-center mb-5">
+                <Sparkles className="w-10 h-10 text-muted-foreground/50" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 No projects yet
               </h3>
-              <p className="text-sm text-zinc-400 max-w-md">
+              <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
                 Get started by creating a new project or opening an existing one
               </p>
             </div>
@@ -712,35 +717,37 @@ export function WelcomeView() {
       {/* Project Initialization Dialog */}
       <Dialog open={showInitDialog} onOpenChange={setShowInitDialog}>
         <DialogContent
-          className="bg-card border-border"
+          className="bg-card border-border shadow-xl"
           data-testid="project-init-dialog"
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-500" />
+            <DialogTitle className="text-foreground flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-brand-500" />
+              </div>
               {initStatus?.isNewProject
                 ? "Project Initialized"
                 : "Project Updated"}
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogDescription className="text-muted-foreground mt-1">
               {initStatus?.isNewProject
                 ? `Created .automaker directory structure for ${initStatus?.projectName}`
                 : `Updated missing files in .automaker for ${initStatus?.projectName}`}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-sm text-foreground font-medium">
                 Created files:
               </p>
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {initStatus?.createdFiles.map((file) => (
                   <li
                     key={file}
-                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                    className="flex items-center gap-2.5 text-sm text-muted-foreground"
                   >
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <code className="text-xs bg-muted px-2.5 py-1 rounded-md font-mono">
                       {file}
                     </code>
                   </li>
@@ -749,18 +756,18 @@ export function WelcomeView() {
             </div>
 
             {initStatus?.isNewProject && (
-              <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border-glass">
+              <div className="mt-5 p-4 rounded-xl bg-muted/50 border border-border">
                 {isAnalyzing ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Loader2 className="w-4 h-4 text-brand-500 animate-spin" />
-                    <p className="text-sm text-brand-400">
+                    <p className="text-sm text-brand-500">
                       AI agent is analyzing your project structure...
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="text-brand-400">Tip:</span> Edit the{" "}
-                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="text-brand-500 font-medium">Tip:</span> Edit the{" "}
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
                       app_spec.txt
                     </code>{" "}
                     file to describe your project. The AI agent will use this to
@@ -773,7 +780,7 @@ export function WelcomeView() {
           <DialogFooter>
             <Button
               onClick={() => setShowInitDialog(false)}
-              className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-600 text-white border-0"
+              className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white border-0 shadow-md shadow-brand-500/20"
               data-testid="close-init-dialog"
             >
               Get Started
@@ -795,8 +802,8 @@ export function WelcomeView() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
           data-testid="project-opening-overlay"
         >
-          <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border">
-            <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+          <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-2xl">
+            <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
             <p className="text-foreground font-medium">
               Initializing project...
             </p>

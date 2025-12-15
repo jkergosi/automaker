@@ -320,7 +320,7 @@ export function SessionManager({
     activeTab === "active" ? activeSessions : archivedSessions;
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col rounded-none">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between mb-4">
           <CardTitle>Agent Sessions</CardTitle>

@@ -4,21 +4,42 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+          "border-transparent bg-destructive text-white hover:bg-destructive/90",
+        outline:
+          "text-foreground border-border bg-background/50 backdrop-blur-sm",
+        // Semantic status variants using CSS variables
+        success:
+          "border-transparent bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success)]/30",
+        warning:
+          "border-transparent bg-[var(--status-warning-bg)] text-[var(--status-warning)] border border-[var(--status-warning)]/30",
+        error:
+          "border-transparent bg-[var(--status-error-bg)] text-[var(--status-error)] border border-[var(--status-error)]/30",
+        info:
+          "border-transparent bg-[var(--status-info-bg)] text-[var(--status-info)] border border-[var(--status-info)]/30",
+        // Muted variants for subtle indication
+        muted:
+          "border-border/50 bg-muted/50 text-muted-foreground",
+        brand:
+          "border-transparent bg-brand-500/15 text-brand-500 border border-brand-500/30",
+      },
+      size: {
+        default: "px-2.5 py-0.5 text-xs",
+        sm: "px-2 py-0.5 text-[10px]",
+        lg: "px-3 py-1 text-sm",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 );
@@ -27,9 +48,9 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, size, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div className={cn(badgeVariants({ variant, size }), className)} {...props} />
   );
 }
 

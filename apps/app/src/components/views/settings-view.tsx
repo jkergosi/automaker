@@ -157,47 +157,47 @@ export function SettingsView() {
             {/* Audio Section */}
             <div
               id="audio"
-              className="rounded-xl border border-border bg-card backdrop-blur-md overflow-hidden scroll-mt-6"
+              className="rounded-2xl border border-border/50 bg-gradient-to-br from-card/90 via-card/70 to-card/80 backdrop-blur-xl shadow-sm shadow-black/5 overflow-hidden scroll-mt-6"
             >
-              <div className="p-6 border-b border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Volume2 className="w-5 h-5 text-brand-500" />
-                  <h2 className="text-lg font-semibold text-foreground">
+              <div className="p-6 border-b border-border/50 bg-gradient-to-r from-transparent via-accent/5 to-transparent">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 flex items-center justify-center border border-brand-500/20">
+                    <Volume2 className="w-5 h-5 text-brand-500" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground tracking-tight">
                     Audio
                   </h2>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground/80 ml-12">
                   Configure audio and notification settings.
                 </p>
               </div>
               <div className="p-6 space-y-4">
                 {/* Mute Done Sound Setting */}
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <Checkbox
-                      id="mute-done-sound"
-                      checked={muteDoneSound}
-                      onCheckedChange={(checked) =>
-                        setMuteDoneSound(checked === true)
-                      }
-                      className="mt-0.5"
-                      data-testid="mute-done-sound-checkbox"
-                    />
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor="mute-done-sound"
-                        className="text-foreground cursor-pointer font-medium flex items-center gap-2"
-                      >
-                        <VolumeX className="w-4 h-4 text-brand-500" />
-                        Mute notification sound when agents complete
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        When enabled, disables the &quot;ding&quot; sound that
-                        plays when an agent completes a feature. The feature
-                        will still move to the completed column, but without
-                        audio notification.
-                      </p>
-                    </div>
+                <div className="group flex items-start space-x-3 p-3 rounded-xl hover:bg-accent/30 transition-colors duration-200 -mx-3">
+                  <Checkbox
+                    id="mute-done-sound"
+                    checked={muteDoneSound}
+                    onCheckedChange={(checked) =>
+                      setMuteDoneSound(checked === true)
+                    }
+                    className="mt-1"
+                    data-testid="mute-done-sound-checkbox"
+                  />
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="mute-done-sound"
+                      className="text-foreground cursor-pointer font-medium flex items-center gap-2"
+                    >
+                      <VolumeX className="w-4 h-4 text-brand-500" />
+                      Mute notification sound when agents complete
+                    </Label>
+                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                      When enabled, disables the &quot;ding&quot; sound that
+                      plays when an agent completes a feature. The feature
+                      will still move to the completed column, but without
+                      audio notification.
+                    </p>
                   </div>
                 </div>
               </div>

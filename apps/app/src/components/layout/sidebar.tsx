@@ -146,9 +146,10 @@ function SortableProjectItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-muted-foreground hover:text-foreground hover:bg-accent",
-        isDragging && "bg-accent shadow-lg",
-        isHighlighted && "bg-brand-500/10 text-foreground"
+        "flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200",
+        "text-muted-foreground hover:text-foreground hover:bg-accent/80",
+        isDragging && "bg-accent shadow-lg scale-[1.02]",
+        isHighlighted && "bg-brand-500/10 text-foreground ring-1 ring-brand-500/20"
       )}
       data-testid={`project-option-${project.id}`}
     >
@@ -156,20 +157,20 @@ function SortableProjectItem({
       <button
         {...attributes}
         {...listeners}
-        className="p-0.5 rounded hover:bg-sidebar-accent/20 cursor-grab active:cursor-grabbing"
+        className="p-0.5 rounded-md hover:bg-accent/50 cursor-grab active:cursor-grabbing transition-colors"
         data-testid={`project-drag-handle-${project.id}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/60" />
       </button>
 
       {/* Project content - clickable area */}
       <div
-        className="flex items-center gap-2 flex-1 min-w-0"
+        className="flex items-center gap-2.5 flex-1 min-w-0"
         onClick={() => onSelect(project)}
       >
-        <Folder className="h-4 w-4 shrink-0" />
-        <span className="flex-1 truncate text-sm">{project.name}</span>
+        <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span className="flex-1 truncate text-sm font-medium">{project.name}</span>
         {currentProjectId === project.id && (
           <Check className="h-4 w-4 text-brand-500 shrink-0" />
         )}
@@ -1161,7 +1162,13 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex-shrink-0 border-r border-sidebar-border bg-sidebar backdrop-blur-md flex flex-col z-30 transition-all duration-300 relative",
+        "flex-shrink-0 flex flex-col z-30 relative",
+        // Glass morphism background with gradient
+        "bg-gradient-to-b from-sidebar/95 via-sidebar/85 to-sidebar/90 backdrop-blur-2xl",
+        // Premium border with subtle glow
+        "border-r border-border/60 shadow-[1px_0_20px_-5px_rgba(0,0,0,0.1)]",
+        // Smooth width transition
+        "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
         sidebarOpen ? "w-16 lg:w-72" : "w-16"
       )}
       data-testid="sidebar"
@@ -1169,22 +1176,40 @@ export function Sidebar() {
       {/* Floating Collapse Toggle Button - Desktop only - At border intersection */}
       <button
         onClick={toggleSidebar}
-        className="hidden lg:flex absolute top-[68px] -right-3 z-9999 group/toggle items-center justify-center w-6 h-6 rounded-full bg-sidebar-accent border border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-border transition-all shadow-lg titlebar-no-drag"
+        className={cn(
+          "hidden lg:flex absolute top-[68px] -right-3 z-9999",
+          "group/toggle items-center justify-center w-7 h-7 rounded-full",
+          // Glass morphism button
+          "bg-card/95 backdrop-blur-sm border border-border/80",
+          // Premium shadow with glow on hover
+          "shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-brand-500/10",
+          "text-muted-foreground hover:text-brand-500 hover:bg-accent/80",
+          "hover:border-brand-500/30",
+          "transition-all duration-200 ease-out titlebar-no-drag",
+          "hover:scale-110 active:scale-90"
+        )}
         data-testid="sidebar-collapse-button"
       >
         {sidebarOpen ? (
-          <PanelLeftClose className="w-3.5 h-3.5 pointer-events-none" />
+          <PanelLeftClose className="w-3.5 h-3.5 pointer-events-none transition-transform duration-200" />
         ) : (
-          <PanelLeft className="w-3.5 h-3.5 pointer-events-none" />
+          <PanelLeft className="w-3.5 h-3.5 pointer-events-none transition-transform duration-200" />
         )}
         {/* Tooltip */}
         <div
-          className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover/toggle:opacity-100 transition-opacity whitespace-nowrap z-50 border border-border pointer-events-none"
+          className={cn(
+            "absolute left-full ml-3 px-2.5 py-1.5 rounded-lg",
+            "bg-popover text-popover-foreground text-xs font-medium",
+            "border border-border shadow-lg",
+            "opacity-0 group-hover/toggle:opacity-100 transition-all duration-200",
+            "whitespace-nowrap z-50 pointer-events-none",
+            "translate-x-1 group-hover/toggle:translate-x-0"
+          )}
           data-testid="sidebar-toggle-tooltip"
         >
           {sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}{" "}
           <span
-            className="ml-1 px-1 py-0.5 bg-brand-500/10 border border-brand-500/30 rounded text-[10px] font-mono text-brand-400/70"
+            className="ml-1.5 px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono text-muted-foreground"
             data-testid="sidebar-toggle-shortcut"
           >
             {formatShortcut(shortcuts.toggleSidebar, true)}
@@ -1196,15 +1221,18 @@ export function Sidebar() {
         {/* Logo */}
         <div
           className={cn(
-            "h-20 border-b border-sidebar-border shrink-0 titlebar-drag-region",
-            sidebarOpen
-              ? "pt-8 px-3 lg:px-6 flex items-center justify-between"
-              : "pt-2 pb-2 px-3 flex flex-col items-center justify-center gap-2"
+            "h-20 shrink-0 titlebar-drag-region",
+            // Subtle bottom border with gradient fade
+            "border-b border-border/40",
+            // Background gradient for depth
+            "bg-gradient-to-b from-transparent to-background/5",
+            "flex items-center",
+            sidebarOpen ? "px-3 lg:px-5 justify-start" : "px-3 justify-center"
           )}
         >
           <div
             className={cn(
-              "flex items-center titlebar-no-drag cursor-pointer group",
+              "flex items-center gap-3 titlebar-no-drag cursor-pointer group",
               !sidebarOpen && "flex-col gap-1"
             )}
             onClick={() => setCurrentView("welcome")}
@@ -1212,28 +1240,64 @@ export function Sidebar() {
           >
             {!sidebarOpen ? (
               <div className="relative flex items-center justify-center rounded-lg">
-                <img
-                  src="/logo.png"
-                  alt="Automaker Logo"
-                  className="size-8 group-hover:rotate-12 transition-transform"
-                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 256 256"
+                  role="img"
+                  aria-label="Automaker Logo"
+                  className="size-8 group-hover:rotate-12 transition-transform duration-300 ease-out"
+                >
+                  <defs>
+                    <linearGradient id="bg-collapsed" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" style={{ stopColor: 'var(--brand-400)' }} />
+                      <stop offset="100%" style={{ stopColor: 'var(--brand-600)' }} />
+                    </linearGradient>
+                    <filter id="iconShadow-collapsed" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000000" floodOpacity="0.25" />
+                    </filter>
+                  </defs>
+                  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#bg-collapsed)" />
+                  <g fill="none" stroke="#FFFFFF" strokeWidth="20" strokeLinecap="round" strokeLinejoin="round" filter="url(#iconShadow-collapsed)">
+                    <path d="M92 92 L52 128 L92 164" />
+                    <path d="M144 72 L116 184" />
+                    <path d="M164 92 L204 128 L164 164" />
+                  </g>
+                </svg>
               </div>
             ) : (
-              <span
+              <div
                 className={cn(
-                  "flex items-center font-bold text-sidebar-foreground text-base tracking-tight",
+                  "flex items-center gap-1",
                   "hidden lg:flex"
                 )}
               >
-                <img
-                  src="/logo.png"
-                  alt="A"
-                  className="h-[1.8em] w-auto inline-block align-middle group-hover:rotate-12 transition-transform"
-                />
-                <span className="-ml-0.5">
-                  uto<span className="text-brand-500">maker</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 256 256"
+                  role="img"
+                  aria-label="automaker"
+                  className="h-[36.8px] w-[36.8px] group-hover:rotate-12 transition-transform duration-300 ease-out"
+                >
+                  <defs>
+                    <linearGradient id="bg-expanded" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" style={{ stopColor: 'var(--brand-400)' }} />
+                      <stop offset="100%" style={{ stopColor: 'var(--brand-600)' }} />
+                    </linearGradient>
+                    <filter id="iconShadow-expanded" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000000" floodOpacity="0.25" />
+                    </filter>
+                  </defs>
+                  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#bg-expanded)" />
+                  <g fill="none" stroke="#FFFFFF" strokeWidth="20" strokeLinecap="round" strokeLinejoin="round" filter="url(#iconShadow-expanded)">
+                    <path d="M92 92 L52 128 L92 164" />
+                    <path d="M144 72 L116 184" />
+                    <path d="M164 92 L204 128 L164 164" />
+                  </g>
+                </svg>
+                <span className="font-bold text-foreground text-[1.7rem] tracking-tight leading-none translate-y-[-2px]">
+                  automaker<span className="text-brand-500">.</span>
                 </span>
-              </span>
+              </div>
             )}
           </div>
           {/* Bug Report Button */}
@@ -1244,7 +1308,12 @@ export function Sidebar() {
                 "https://github.com/AutoMaker-Org/automaker/issues"
               );
             }}
-            className="titlebar-no-drag p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-all"
+            className={cn(
+              "titlebar-no-drag p-1.5 rounded-lg absolute right-3",
+              "text-muted-foreground hover:text-foreground hover:bg-accent/80",
+              "transition-all duration-200 ease-out",
+              "hover:scale-105 active:scale-95"
+            )}
             title="Report Bug / Feature Request"
             data-testid="bug-report-link"
           >
@@ -1254,38 +1323,69 @@ export function Sidebar() {
 
         {/* Project Actions - Moved above project selector */}
         {sidebarOpen && (
-          <div className="flex items-center gap-2 titlebar-no-drag px-2 mt-3">
+          <div className="flex items-center gap-2.5 titlebar-no-drag px-3 mt-4">
             <button
               onClick={() => setShowNewProjectModal(true)}
-              className="group flex items-center justify-center flex-1 px-3 py-2.5 rounded-lg relative overflow-hidden transition-all text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 border border-sidebar-border"
+              className={cn(
+                "group flex items-center justify-center flex-1 px-3 py-2.5 rounded-xl",
+                "relative overflow-hidden",
+                "text-muted-foreground hover:text-foreground",
+                // Glass background with gradient on hover
+                "bg-accent/20 hover:bg-gradient-to-br hover:from-brand-500/15 hover:to-brand-600/10",
+                "border border-border/40 hover:border-brand-500/30",
+                // Premium shadow
+                "shadow-sm hover:shadow-md hover:shadow-brand-500/5",
+                "transition-all duration-200 ease-out",
+                "hover:scale-[1.02] active:scale-[0.97]"
+              )}
               title="New Project"
               data-testid="new-project-button"
             >
-              <Plus className="w-4 h-4 shrink-0" />
+              <Plus className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:rotate-90 group-hover:text-brand-500" />
               <span className="ml-2 text-sm font-medium hidden lg:block whitespace-nowrap">
                 New
               </span>
             </button>
             <button
               onClick={handleOpenFolder}
-              className="group flex items-center justify-center flex-1 px-3 py-2.5 rounded-lg relative overflow-hidden transition-all text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 border border-sidebar-border"
+              className={cn(
+                "group flex items-center justify-center flex-1 px-3 py-2.5 rounded-xl",
+                "relative overflow-hidden",
+                "text-muted-foreground hover:text-foreground",
+                // Glass background
+                "bg-accent/20 hover:bg-accent/40",
+                "border border-border/40 hover:border-border/60",
+                "shadow-sm hover:shadow-md",
+                "transition-all duration-200 ease-out",
+                "hover:scale-[1.02] active:scale-[0.97]"
+              )}
               title={`Open Folder (${shortcuts.openProject})`}
               data-testid="open-project-button"
             >
-              <FolderOpen className="w-4 h-4 shrink-0" />
-              <span className="hidden lg:flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-mono rounded bg-brand-500/10 border border-brand-500/30 text-brand-400/70 ml-2">
+              <FolderOpen className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <span className="hidden lg:flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-mono rounded-md bg-muted/80 text-muted-foreground ml-2">
                 {formatShortcut(shortcuts.openProject, true)}
               </span>
             </button>
             <button
               onClick={() => setShowTrashDialog(true)}
-              className="group flex items-center justify-center px-3 h-[42px] rounded-lg relative overflow-hidden transition-all text-muted-foreground hover:text-primary hover:bg-destructive/10 border border-sidebar-border"
+              className={cn(
+                "group flex items-center justify-center px-3 h-[42px] rounded-xl",
+                "relative overflow-hidden",
+                "text-muted-foreground hover:text-destructive",
+                // Subtle background that turns red on hover
+                "bg-accent/20 hover:bg-destructive/15",
+                "border border-border/40 hover:border-destructive/40",
+                "shadow-sm hover:shadow-md hover:shadow-destructive/10",
+                "transition-all duration-200 ease-out",
+                "hover:scale-[1.02] active:scale-[0.97]"
+              )}
               title="Recycle Bin"
               data-testid="trash-button"
             >
-              <Recycle className="size-4 shrink-0" />
+              <Recycle className="size-4 shrink-0 transition-transform duration-200 group-hover:rotate-12" />
               {trashedProjects.length > 0 && (
-                <span className="absolute -top-[2px] -right-[2px] flex items-center justify-center w-5 h-5 text-[10px] font-medium rounded-full text-brand-500">
+                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-4 h-4 px-1 text-[9px] font-bold rounded-full bg-destructive text-destructive-foreground shadow-sm">
                   {trashedProjects.length > 9 ? "9+" : trashedProjects.length}
                 </span>
               )}
@@ -1295,56 +1395,77 @@ export function Sidebar() {
 
         {/* Project Selector with Cycle Buttons */}
         {sidebarOpen && projects.length > 0 && (
-          <div className="px-2 mt-3 flex items-center gap-1.5">
+          <div className="px-3 mt-3 flex items-center gap-2.5">
             <DropdownMenu
               open={isProjectPickerOpen}
               onOpenChange={setIsProjectPickerOpen}
             >
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg bg-sidebar-accent/10 border border-sidebar-border hover:bg-sidebar-accent/20 transition-all text-foreground titlebar-no-drag min-w-0"
+                  className={cn(
+                    "flex-1 flex items-center justify-between px-3.5 py-3 rounded-xl",
+                    // Premium glass background
+                    "bg-gradient-to-br from-accent/40 to-accent/20",
+                    "hover:from-accent/50 hover:to-accent/30",
+                    "border border-border/50 hover:border-border/70",
+                    // Subtle inner shadow
+                    "shadow-sm shadow-black/5",
+                    "text-foreground titlebar-no-drag min-w-0",
+                    "transition-all duration-200 ease-out",
+                    "hover:scale-[1.01] active:scale-[0.99]",
+                    isProjectPickerOpen && "from-brand-500/10 to-brand-600/5 border-brand-500/30 ring-2 ring-brand-500/20 shadow-lg shadow-brand-500/5"
+                  )}
                   data-testid="project-selector"
                 >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
                     <Folder className="h-4 w-4 text-brand-500 shrink-0" />
                     <span className="text-sm font-medium truncate">
                       {currentProject?.name || "Select Project"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <span
-                      className="hidden lg:flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-mono rounded bg-brand-500/10 border border-brand-500/30 text-brand-400/70"
+                      className="hidden lg:flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-mono rounded-md bg-muted text-muted-foreground"
                       data-testid="project-picker-shortcut"
                     >
                       {formatShortcut(shortcuts.projectPicker, true)}
                     </span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <ChevronDown className={cn(
+                      "h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200",
+                      isProjectPickerOpen && "rotate-180"
+                    )} />
                   </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-64 bg-popover border-border p-1"
+                className="w-72 bg-popover/95 backdrop-blur-xl border-border shadow-xl p-1.5"
                 align="start"
                 data-testid="project-picker-dropdown"
               >
                 {/* Search input for type-ahead filtering */}
-                <div className="px-2 pb-2">
+                <div className="px-1 pb-2">
                   <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <input
                       ref={projectSearchInputRef}
                       type="text"
                       placeholder="Search projects..."
                       value={projectSearchQuery}
                       onChange={(e) => setProjectSearchQuery(e.target.value)}
-                      className="w-full h-8 pl-7 pr-2 text-sm rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+                      className={cn(
+                        "w-full h-9 pl-8 pr-3 text-sm rounded-lg",
+                        "border border-border bg-background/50",
+                        "text-foreground placeholder:text-muted-foreground",
+                        "focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
+                        "transition-all duration-200"
+                      )}
                       data-testid="project-search-input"
                     />
                   </div>
                 </div>
 
                 {filteredProjects.length === 0 ? (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
                     No projects found
                   </div>
                 ) : (
@@ -1357,26 +1478,28 @@ export function Sidebar() {
                       items={filteredProjects.map((p) => p.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {filteredProjects.map((project, index) => (
-                        <SortableProjectItem
-                          key={project.id}
-                          project={project}
-                          currentProjectId={currentProject?.id}
-                          isHighlighted={index === selectedProjectIndex}
-                          onSelect={(p) => {
-                            setCurrentProject(p);
-                            setIsProjectPickerOpen(false);
-                          }}
-                        />
-                      ))}
+                      <div className="space-y-0.5 max-h-64 overflow-y-auto">
+                        {filteredProjects.map((project, index) => (
+                          <SortableProjectItem
+                            key={project.id}
+                            project={project}
+                            currentProjectId={currentProject?.id}
+                            isHighlighted={index === selectedProjectIndex}
+                            onSelect={(p) => {
+                              setCurrentProject(p);
+                              setIsProjectPickerOpen(false);
+                            }}
+                          />
+                        ))}
+                      </div>
                     </SortableContext>
                   </DndContext>
                 )}
 
                 {/* Keyboard hint */}
-                <div className="px-2 pt-2 mt-1 border-t border-border">
-                  <p className="text-[10px] text-muted-foreground text-center">
-                    ↑↓ navigate • Enter select • Esc close
+                <div className="px-2 pt-2 mt-1.5 border-t border-border/50">
+                  <p className="text-[10px] text-muted-foreground text-center tracking-wide">
+                    <span className="text-foreground/60">arrow</span> navigate <span className="mx-1 text-foreground/30">|</span> <span className="text-foreground/60">enter</span> select <span className="mx-1 text-foreground/30">|</span> <span className="text-foreground/60">esc</span> close
                   </p>
                 </div>
               </DropdownMenuContent>
@@ -1394,14 +1517,21 @@ export function Sidebar() {
               >
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="hidden lg:flex items-center justify-center w-8 h-[42px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 border border-sidebar-border transition-all titlebar-no-drag"
+                    className={cn(
+                      "hidden lg:flex items-center justify-center w-[42px] h-[42px] rounded-lg",
+                      "text-muted-foreground hover:text-foreground",
+                      "bg-transparent hover:bg-accent/60",
+                      "border border-border/50 hover:border-border",
+                      "transition-all duration-200 ease-out titlebar-no-drag",
+                      "hover:scale-[1.02] active:scale-[0.98]"
+                    )}
                     title="Project options"
                     data-testid="project-options-menu"
                   >
                     <MoreVertical className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl">
                   {/* Project Theme Submenu */}
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger data-testid="project-theme-trigger">
@@ -1414,7 +1544,7 @@ export function Sidebar() {
                       )}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent
-                      className="w-56"
+                      className="w-56 bg-popover/95 backdrop-blur-xl"
                       data-testid="project-theme-menu"
                       onPointerLeave={() => {
                         // Clear preview theme when leaving the dropdown
@@ -1555,7 +1685,7 @@ export function Sidebar() {
         )}
 
         {/* Nav Items - Scrollable */}
-        <nav className="flex-1 overflow-y-auto px-2 mt-4 pb-2">
+        <nav className="flex-1 overflow-y-auto px-3 mt-5 pb-2">
           {!currentProject && sidebarOpen ? (
             // Placeholder when no project is selected (only in expanded state)
             <div className="flex items-center justify-center h-full px-4">
@@ -1571,18 +1701,18 @@ export function Sidebar() {
               <div key={sectionIdx} className={sectionIdx > 0 ? "mt-6" : ""}>
                 {/* Section Label */}
                 {section.label && sidebarOpen && (
-                  <div className="hidden lg:block px-4 mb-2">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="hidden lg:block px-3 mb-2">
+                    <span className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
                       {section.label}
                     </span>
                   </div>
                 )}
                 {section.label && !sidebarOpen && (
-                  <div className="h-px bg-sidebar-border mx-2 mb-2"></div>
+                  <div className="h-px bg-border/30 mx-2 mb-3"></div>
                 )}
 
                 {/* Nav Items */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {section.items.map((item) => {
                     const isActive = isActiveRoute(item.id);
                     const Icon = item.icon;
@@ -1592,29 +1722,43 @@ export function Sidebar() {
                         key={item.id}
                         onClick={() => setCurrentView(item.id as any)}
                         className={cn(
-                          "group flex items-center w-full px-2 lg:px-3 py-2.5 rounded-lg relative overflow-hidden transition-all titlebar-no-drag",
+                          "group flex items-center w-full px-3 py-2.5 rounded-xl relative overflow-hidden titlebar-no-drag",
+                          "transition-all duration-200 ease-out",
                           isActive
-                            ? "bg-sidebar-accent/50 text-foreground border border-sidebar-border"
-                            : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
-                          sidebarOpen ? "justify-start" : "justify-center"
+                            ? [
+                                // Active: Premium gradient with glow
+                                "bg-gradient-to-r from-brand-500/20 via-brand-500/15 to-brand-600/10",
+                                "text-foreground font-medium",
+                                "border border-brand-500/30",
+                                "shadow-md shadow-brand-500/10",
+                              ]
+                            : [
+                                // Inactive: Subtle hover state
+                                "text-muted-foreground hover:text-foreground",
+                                "hover:bg-accent/50",
+                                "border border-transparent hover:border-border/40",
+                                "hover:shadow-sm",
+                              ],
+                          sidebarOpen ? "justify-start" : "justify-center",
+                          "hover:scale-[1.02] active:scale-[0.97]"
                         )}
                         title={!sidebarOpen ? item.label : undefined}
                         data-testid={`nav-${item.id}`}
                       >
                         {isActive && (
-                          <div className="absolute inset-y-0 left-0 w-0.5 bg-brand-500 rounded-l-md"></div>
+                          <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-400 via-brand-500 to-brand-600 rounded-r-full shadow-sm shadow-brand-500/50"></div>
                         )}
                         <Icon
                           className={cn(
-                            "w-4 h-4 shrink-0 transition-colors",
+                            "w-[18px] h-[18px] shrink-0 transition-all duration-200",
                             isActive
-                              ? "text-brand-500"
-                              : "group-hover:text-brand-400"
+                              ? "text-brand-500 drop-shadow-sm"
+                              : "group-hover:text-brand-400 group-hover:scale-110"
                           )}
                         />
                         <span
                           className={cn(
-                            "ml-2.5 font-medium text-sm flex-1 text-left",
+                            "ml-3 font-medium text-sm flex-1 text-left",
                             sidebarOpen ? "hidden lg:block" : "hidden"
                           )}
                         >
@@ -1623,9 +1767,10 @@ export function Sidebar() {
                         {item.shortcut && sidebarOpen && (
                           <span
                             className={cn(
-                              "hidden lg:flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-mono rounded bg-brand-500/10 border border-brand-500/30 text-brand-400/70",
-                              isActive &&
-                                "bg-brand-500/20 border-brand-500/50 text-brand-400"
+                              "hidden lg:flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-mono rounded-md transition-all duration-200",
+                              isActive
+                                ? "bg-brand-500/20 text-brand-400"
+                                : "bg-muted text-muted-foreground group-hover:bg-accent"
                             )}
                             data-testid={`shortcut-${item.id}`}
                           >
@@ -1635,10 +1780,22 @@ export function Sidebar() {
                         {/* Tooltip for collapsed state */}
                         {!sidebarOpen && (
                           <span
-                            className="absolute left-full ml-2 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-zinc-700"
+                            className={cn(
+                              "absolute left-full ml-3 px-2.5 py-1.5 rounded-lg",
+                              "bg-popover text-popover-foreground text-xs font-medium",
+                              "border border-border shadow-lg",
+                              "opacity-0 group-hover:opacity-100",
+                              "transition-all duration-200 whitespace-nowrap z-50",
+                              "translate-x-1 group-hover:translate-x-0"
+                            )}
                             data-testid={`sidebar-tooltip-${item.label.toLowerCase()}`}
                           >
                             {item.label}
+                            {item.shortcut && (
+                              <span className="ml-2 px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono text-muted-foreground">
+                                {formatShortcut(item.shortcut, true)}
+                              </span>
+                            )}
                           </span>
                         )}
                       </button>
@@ -1652,7 +1809,13 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Section - Running Agents / Bug Report / Settings */}
-      <div className="border-t border-sidebar-border bg-sidebar-accent/10 shrink-0">
+      <div className={cn(
+        "shrink-0",
+        // Top border with gradient fade
+        "border-t border-border/40",
+        // Elevated background for visual separation
+        "bg-gradient-to-t from-background/10 via-sidebar/50 to-transparent"
+      )}>
         {/* Course Promo Badge */}
         <CoursePromoBadge sidebarOpen={sidebarOpen} />
         {/* Wiki Link */}
@@ -1661,36 +1824,55 @@ export function Sidebar() {
             <button
               onClick={() => setCurrentView("wiki")}
               className={cn(
-                "group flex items-center w-full px-2 lg:px-3 py-2.5 rounded-lg relative overflow-hidden transition-all titlebar-no-drag",
+                "group flex items-center w-full px-3 py-2.5 rounded-xl relative overflow-hidden titlebar-no-drag",
+                "transition-all duration-200 ease-out",
                 isActiveRoute("wiki")
-                  ? "bg-sidebar-accent/50 text-foreground border border-sidebar-border"
-                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
-                sidebarOpen ? "justify-start" : "justify-center"
+                  ? [
+                      "bg-gradient-to-r from-brand-500/20 via-brand-500/15 to-brand-600/10",
+                      "text-foreground font-medium",
+                      "border border-brand-500/30",
+                      "shadow-md shadow-brand-500/10",
+                    ]
+                  : [
+                      "text-muted-foreground hover:text-foreground",
+                      "hover:bg-accent/50",
+                      "border border-transparent hover:border-border/40",
+                      "hover:shadow-sm",
+                    ],
+                sidebarOpen ? "justify-start" : "justify-center",
+                "hover:scale-[1.02] active:scale-[0.97]"
               )}
               title={!sidebarOpen ? "Wiki" : undefined}
               data-testid="wiki-link"
             >
               {isActiveRoute("wiki") && (
-                <div className="absolute inset-y-0 left-0 w-0.5 bg-brand-500 rounded-l-md"></div>
+                <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-400 via-brand-500 to-brand-600 rounded-r-full shadow-sm shadow-brand-500/50"></div>
               )}
               <BookOpen
                 className={cn(
-                  "w-4 h-4 shrink-0 transition-colors",
+                  "w-[18px] h-[18px] shrink-0 transition-all duration-200",
                   isActiveRoute("wiki")
-                    ? "text-brand-500"
-                    : "group-hover:text-brand-400"
+                    ? "text-brand-500 drop-shadow-sm"
+                    : "group-hover:text-brand-400 group-hover:scale-110"
                 )}
               />
               <span
                 className={cn(
-                  "ml-2.5 font-medium text-sm flex-1 text-left",
+                  "ml-3 font-medium text-sm flex-1 text-left",
                   sidebarOpen ? "hidden lg:block" : "hidden"
                 )}
               >
                 Wiki
               </span>
               {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-border">
+                <span className={cn(
+                  "absolute left-full ml-3 px-2.5 py-1.5 rounded-lg",
+                  "bg-popover text-popover-foreground text-xs font-medium",
+                  "border border-border shadow-lg",
+                  "opacity-0 group-hover:opacity-100",
+                  "transition-all duration-200 whitespace-nowrap z-50",
+                  "translate-x-1 group-hover:translate-x-0"
+                )}>
                   Wiki
                 </span>
               )}
@@ -1703,31 +1885,48 @@ export function Sidebar() {
             <button
               onClick={() => setCurrentView("running-agents")}
               className={cn(
-                "group flex items-center w-full px-2 lg:px-3 py-2.5 rounded-lg relative overflow-hidden transition-all titlebar-no-drag",
+                "group flex items-center w-full px-3 py-2.5 rounded-xl relative overflow-hidden titlebar-no-drag",
+                "transition-all duration-200 ease-out",
                 isActiveRoute("running-agents")
-                  ? "bg-sidebar-accent/50 text-foreground border border-sidebar-border"
-                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
-                sidebarOpen ? "justify-start" : "justify-center"
+                  ? [
+                      "bg-gradient-to-r from-brand-500/20 via-brand-500/15 to-brand-600/10",
+                      "text-foreground font-medium",
+                      "border border-brand-500/30",
+                      "shadow-md shadow-brand-500/10",
+                    ]
+                  : [
+                      "text-muted-foreground hover:text-foreground",
+                      "hover:bg-accent/50",
+                      "border border-transparent hover:border-border/40",
+                      "hover:shadow-sm",
+                    ],
+                sidebarOpen ? "justify-start" : "justify-center",
+                "hover:scale-[1.02] active:scale-[0.97]"
               )}
               title={!sidebarOpen ? "Running Agents" : undefined}
               data-testid="running-agents-link"
             >
               {isActiveRoute("running-agents") && (
-                <div className="absolute inset-y-0 left-0 w-0.5 bg-brand-500 rounded-l-md"></div>
+                <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-400 via-brand-500 to-brand-600 rounded-r-full shadow-sm shadow-brand-500/50"></div>
               )}
               <div className="relative">
                 <Activity
                   className={cn(
-                    "w-4 h-4 shrink-0 transition-colors",
+                    "w-[18px] h-[18px] shrink-0 transition-all duration-200",
                     isActiveRoute("running-agents")
-                      ? "text-brand-500"
-                      : "group-hover:text-brand-400"
+                      ? "text-brand-500 drop-shadow-sm"
+                      : "group-hover:text-brand-400 group-hover:scale-110"
                   )}
                 />
                 {/* Running agents count badge - shown in collapsed state */}
                 {!sidebarOpen && runningAgentsCount > 0 && (
                   <span
-                    className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-semibold rounded-full bg-brand-500 text-white"
+                    className={cn(
+                      "absolute -top-1.5 -right-1.5 flex items-center justify-center",
+                      "min-w-4 h-4 px-1 text-[9px] font-bold rounded-full",
+                      "bg-brand-500 text-white shadow-sm",
+                      "animate-in fade-in zoom-in duration-200"
+                    )}
                     data-testid="running-agents-count-collapsed"
                   >
                     {runningAgentsCount > 99 ? "99" : runningAgentsCount}
@@ -1736,7 +1935,7 @@ export function Sidebar() {
               </div>
               <span
                 className={cn(
-                  "ml-2.5 font-medium text-sm flex-1 text-left",
+                  "ml-3 font-medium text-sm flex-1 text-left",
                   sidebarOpen ? "hidden lg:block" : "hidden"
                 )}
               >
@@ -1746,7 +1945,10 @@ export function Sidebar() {
               {sidebarOpen && runningAgentsCount > 0 && (
                 <span
                   className={cn(
-                    "hidden lg:flex items-center justify-center min-w-6 h-6 px-1.5 text-xs font-semibold rounded-full bg-brand-500 text-white",
+                    "hidden lg:flex items-center justify-center",
+                    "min-w-6 h-6 px-1.5 text-xs font-semibold rounded-full",
+                    "bg-brand-500 text-white shadow-sm",
+                    "animate-in fade-in zoom-in duration-200",
                     isActiveRoute("running-agents") && "bg-brand-600"
                   )}
                   data-testid="running-agents-count"
@@ -1755,8 +1957,20 @@ export function Sidebar() {
                 </span>
               )}
               {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-border">
+                <span className={cn(
+                  "absolute left-full ml-3 px-2.5 py-1.5 rounded-lg",
+                  "bg-popover text-popover-foreground text-xs font-medium",
+                  "border border-border shadow-lg",
+                  "opacity-0 group-hover:opacity-100",
+                  "transition-all duration-200 whitespace-nowrap z-50",
+                  "translate-x-1 group-hover:translate-x-0"
+                )}>
                   Running Agents
+                  {runningAgentsCount > 0 && (
+                    <span className="ml-2 px-1.5 py-0.5 bg-brand-500 text-white rounded-full text-[10px] font-semibold">
+                      {runningAgentsCount}
+                    </span>
+                  )}
                 </span>
               )}
             </button>
@@ -1767,29 +1981,41 @@ export function Sidebar() {
           <button
             onClick={() => setCurrentView("settings")}
             className={cn(
-              "group flex items-center w-full px-2 lg:px-3 py-2.5 rounded-lg relative overflow-hidden transition-all titlebar-no-drag",
+              "group flex items-center w-full px-3 py-2.5 rounded-xl relative overflow-hidden titlebar-no-drag",
+              "transition-all duration-200 ease-out",
               isActiveRoute("settings")
-                ? "bg-sidebar-accent/50 text-foreground border border-sidebar-border"
-                : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
-              sidebarOpen ? "justify-start" : "justify-center"
+                ? [
+                    "bg-gradient-to-r from-brand-500/20 via-brand-500/15 to-brand-600/10",
+                    "text-foreground font-medium",
+                    "border border-brand-500/30",
+                    "shadow-md shadow-brand-500/10",
+                  ]
+                : [
+                    "text-muted-foreground hover:text-foreground",
+                    "hover:bg-accent/50",
+                    "border border-transparent hover:border-border/40",
+                    "hover:shadow-sm",
+                  ],
+              sidebarOpen ? "justify-start" : "justify-center",
+              "hover:scale-[1.02] active:scale-[0.97]"
             )}
             title={!sidebarOpen ? "Settings" : undefined}
             data-testid="settings-button"
           >
             {isActiveRoute("settings") && (
-              <div className="absolute inset-y-0 left-0 w-0.5 bg-brand-500 rounded-l-md"></div>
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-400 via-brand-500 to-brand-600 rounded-r-full shadow-sm shadow-brand-500/50"></div>
             )}
             <Settings
               className={cn(
-                "w-4 h-4 shrink-0 transition-colors",
+                "w-[18px] h-[18px] shrink-0 transition-all duration-200",
                 isActiveRoute("settings")
-                  ? "text-brand-500"
-                  : "group-hover:text-brand-400"
+                  ? "text-brand-500 drop-shadow-sm"
+                  : "group-hover:text-brand-400 group-hover:rotate-90 group-hover:scale-110"
               )}
             />
             <span
               className={cn(
-                "ml-2.5 font-medium text-sm flex-1 text-left",
+                "ml-3 font-medium text-sm flex-1 text-left",
                 sidebarOpen ? "hidden lg:block" : "hidden"
               )}
             >
@@ -1798,9 +2024,10 @@ export function Sidebar() {
             {sidebarOpen && (
               <span
                 className={cn(
-                  "hidden lg:flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-mono rounded bg-brand-500/10 border border-brand-500/30 text-brand-400/70",
-                  isActiveRoute("settings") &&
-                    "bg-brand-500/20 border-brand-500/50 text-brand-400"
+                  "hidden lg:flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-mono rounded-md transition-all duration-200",
+                  isActiveRoute("settings")
+                    ? "bg-brand-500/20 text-brand-400"
+                    : "bg-muted text-muted-foreground group-hover:bg-accent"
                 )}
                 data-testid="shortcut-settings"
               >
@@ -1808,15 +2035,25 @@ export function Sidebar() {
               </span>
             )}
             {!sidebarOpen && (
-              <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-border">
+              <span className={cn(
+                "absolute left-full ml-3 px-2.5 py-1.5 rounded-lg",
+                "bg-popover text-popover-foreground text-xs font-medium",
+                "border border-border shadow-lg",
+                "opacity-0 group-hover:opacity-100",
+                "transition-all duration-200 whitespace-nowrap z-50",
+                "translate-x-1 group-hover:translate-x-0"
+              )}>
                 Settings
+                <span className="ml-2 px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono text-muted-foreground">
+                  {formatShortcut(shortcuts.settings, true)}
+                </span>
               </span>
             )}
           </button>
         </div>
       </div>
       <Dialog open={showTrashDialog} onOpenChange={setShowTrashDialog}>
-        <DialogContent className="bg-popover border-border max-w-2xl">
+        <DialogContent className="bg-popover/95 backdrop-blur-xl border-border max-w-2xl">
           <DialogHeader>
             <DialogTitle>Recycle Bin</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1834,7 +2071,7 @@ export function Sidebar() {
               {trashedProjects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-start justify-between gap-3 rounded-md border border-sidebar-border bg-sidebar-accent/20 p-3"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card/50 p-4"
                 >
                   <div className="space-y-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
@@ -1912,7 +2149,7 @@ export function Sidebar() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-popover/95 backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle>Set Up Your Project</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1932,7 +2169,7 @@ export function Sidebar() {
                 better specification.
               </p>
               <textarea
-                className="w-full h-48 p-3 rounded-md border border-border bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-48 p-3 rounded-lg border border-border bg-background/50 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 transition-all"
                 value={projectOverview}
                 onChange={(e) => setProjectOverview(e.target.value)}
                 placeholder="e.g., A project management tool that allows teams to track tasks, manage sprints, and visualize progress through kanban boards. It should support user authentication, real-time updates, and file attachments..."
@@ -1970,6 +2207,7 @@ export function Sidebar() {
             <Button
               onClick={handleCreateInitialSpec}
               disabled={!projectOverview.trim()}
+              className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-600 text-white border-0"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Generate Spec
@@ -1987,7 +2225,7 @@ export function Sidebar() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-popover/95 backdrop-blur-xl">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-500/10 border border-brand-500/20">
@@ -2016,7 +2254,7 @@ export function Sidebar() {
             </div>
 
             {/* Benefits list */}
-            <div className="space-y-3 rounded-lg bg-muted/50 border border-border p-4">
+            <div className="space-y-3 rounded-xl bg-muted/30 border border-border/50 p-4">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0 mt-0.5" />
                 <div>
@@ -2056,9 +2294,9 @@ export function Sidebar() {
             </div>
 
             {/* Info box */}
-            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-              <p className="text-xs text-blue-400 leading-relaxed">
-                <strong className="text-blue-300">Tip:</strong> You can always
+            <div className="rounded-xl bg-brand-500/5 border border-brand-500/10 p-3">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">Tip:</strong> You can always
                 generate or edit your app_spec.txt later from the Spec Editor in
                 the sidebar.
               </p>

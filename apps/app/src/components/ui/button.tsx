@@ -1,24 +1,26 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all cursor-pointer disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 cursor-pointer disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default:
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:shadow-md hover:shadow-destructive/25 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:underline active:scale-100",
         "animated-outline":
           "relative overflow-hidden rounded-xl hover:bg-transparent shadow-none",
       },
@@ -38,17 +40,32 @@ const buttonVariants = cva(
   }
 );
 
+// Loading spinner component
+function ButtonSpinner({ className }: { className?: string }) {
+  return (
+    <Loader2
+      className={cn("size-4 animate-spin", className)}
+      aria-hidden="true"
+    />
+  );
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  loading = false,
+  disabled,
   children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    loading?: boolean;
   }) {
+  const isDisabled = disabled || loading;
+
   // Special handling for animated-outline variant
   if (variant === "animated-outline" && !asChild) {
     return (
@@ -59,20 +76,22 @@ function Button({
           className
         )}
         data-slot="button"
+        disabled={isDisabled}
         {...props}
       >
-        {/* Animated rotating gradient border */}
-        <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] animated-outline-gradient" />
+        {/* Animated rotating gradient border - smoother animation */}
+        <span className="absolute inset-[-1000%] animate-[spin_3s_linear_infinite] animated-outline-gradient opacity-75 transition-opacity duration-300 group-hover:opacity-100" />
 
         {/* Inner content container */}
         <span
           className={cn(
-            "animated-outline-inner inline-flex h-full w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-1 text-sm font-medium backdrop-blur-3xl transition-all",
+            "animated-outline-inner inline-flex h-full w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] px-4 py-1 text-sm font-medium backdrop-blur-3xl transition-all duration-200",
             size === "sm" && "px-3 text-xs gap-1.5",
             size === "lg" && "px-8",
             size === "icon" && "p-0 gap-0"
           )}
         >
+          {loading && <ButtonSpinner />}
           {children}
         </span>
       </button>
@@ -85,8 +104,10 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={isDisabled}
       {...props}
     >
+      {loading && <ButtonSpinner />}
       {children}
     </Comp>
   );
