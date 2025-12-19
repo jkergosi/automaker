@@ -13,6 +13,10 @@ import {
 } from "../helpers/git-test-repo.js";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 vi.mock("@/providers/provider-factory.js");
 
@@ -43,13 +47,24 @@ describe("auto-mode-service.ts (integration)", () => {
   });
 
   describe("worktree operations", () => {
-    it("should create git worktree for feature", async () => {
-      // Create a test feature
+    it("should use existing git worktree for feature", async () => {
+      const branchName = "feature/test-feature-1";
+      
+      // Create a test feature with branchName set
       await createTestFeature(testRepo.path, "test-feature-1", {
         id: "test-feature-1",
         category: "test",
         description: "Test feature",
         status: "pending",
+        branchName: branchName,
+      });
+
+      // Create worktree before executing (worktrees are now created when features are added/edited)
+      const worktreesDir = path.join(testRepo.path, ".worktrees");
+      const worktreePath = path.join(worktreesDir, "test-feature-1");
+      await fs.mkdir(worktreesDir, { recursive: true });
+      await execAsync(`git worktree add -b ${branchName} "${worktreePath}" HEAD`, {
+        cwd: testRepo.path,
       });
 
       // Mock provider to complete quickly
@@ -82,9 +97,20 @@ describe("auto-mode-service.ts (integration)", () => {
         false // isAutoMode
       );
 
-      // Verify branch was created
+      // Verify branch exists (was created when worktree was created)
       const branches = await listBranches(testRepo.path);
-      expect(branches).toContain("feature/test-feature-1");
+      expect(branches).toContain(branchName);
+
+      // Verify worktree exists and is being used
+      // The service should have found and used the worktree (check via logs)
+      // We can verify the worktree exists by checking git worktree list
+      const worktrees = await listWorktrees(testRepo.path);
+      expect(worktrees.length).toBeGreaterThan(0);
+      // Verify that at least one worktree path contains our feature ID
+      const worktreePathsMatch = worktrees.some(wt => 
+        wt.includes("test-feature-1") || wt.includes(".worktrees")
+      );
+      expect(worktreePathsMatch).toBe(true);
 
       // Note: Worktrees are not automatically cleaned up by the service
       // This is expected behavior - manual cleanup is required

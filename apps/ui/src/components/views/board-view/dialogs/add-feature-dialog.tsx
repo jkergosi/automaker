@@ -73,6 +73,7 @@ interface AddFeatureDialogProps {
   }) => void;
   categorySuggestions: string[];
   branchSuggestions: string[];
+  branchCardCounts?: Record<string, number>; // Map of branch name to unarchived card count
   defaultSkipTests: boolean;
   defaultBranch?: string;
   currentBranch?: string;
@@ -87,6 +88,7 @@ export function AddFeatureDialog({
   onAdd,
   categorySuggestions,
   branchSuggestions,
+  branchCardCounts,
   defaultSkipTests,
   defaultBranch = "main",
   currentBranch,
@@ -116,11 +118,16 @@ export function AddFeatureDialog({
   const [enhancementMode, setEnhancementMode] = useState<
     "improve" | "technical" | "simplify" | "acceptance"
   >("improve");
-  const [planningMode, setPlanningMode] = useState<PlanningMode>('skip');
+  const [planningMode, setPlanningMode] = useState<PlanningMode>("skip");
   const [requirePlanApproval, setRequirePlanApproval] = useState(false);
 
   // Get enhancement model, planning mode defaults, and worktrees setting from store
-  const { enhancementModel, defaultPlanningMode, defaultRequirePlanApproval, useWorktrees } = useAppStore();
+  const {
+    enhancementModel,
+    defaultPlanningMode,
+    defaultRequirePlanApproval,
+    useWorktrees,
+  } = useAppStore();
 
   // Sync defaults when dialog opens
   useEffect(() => {
@@ -134,7 +141,13 @@ export function AddFeatureDialog({
       setPlanningMode(defaultPlanningMode);
       setRequirePlanApproval(defaultRequirePlanApproval);
     }
-  }, [open, defaultSkipTests, defaultBranch, defaultPlanningMode, defaultRequirePlanApproval]);
+  }, [
+    open,
+    defaultSkipTests,
+    defaultBranch,
+    defaultPlanningMode,
+    defaultRequirePlanApproval,
+  ]);
 
   const handleAdd = () => {
     if (!newFeature.description.trim()) {
@@ -158,7 +171,7 @@ export function AddFeatureDialog({
     // If currentBranch is provided (non-primary worktree), use it
     // Otherwise (primary worktree), use empty string which means "unassigned" (show only on primary)
     const finalBranchName = useCurrentBranch
-      ? (currentBranch || "")
+      ? currentBranch || ""
       : newFeature.branchName || "";
 
     onAdd({
@@ -399,6 +412,7 @@ export function AddFeatureDialog({
                   setNewFeature({ ...newFeature, branchName: value })
                 }
                 branchSuggestions={branchSuggestions}
+                branchCardCounts={branchCardCounts}
                 currentBranch={currentBranch}
                 testIdPrefix="feature"
               />
@@ -481,7 +495,10 @@ export function AddFeatureDialog({
           </TabsContent>
 
           {/* Options Tab */}
-          <TabsContent value="options" className="space-y-4 overflow-y-auto cursor-default">
+          <TabsContent
+            value="options"
+            className="space-y-4 overflow-y-auto cursor-default"
+          >
             {/* Planning Mode Section */}
             <PlanningModeSelector
               mode={planningMode}
@@ -516,9 +533,7 @@ export function AddFeatureDialog({
             hotkeyActive={open}
             data-testid="confirm-add-feature"
             disabled={
-              useWorktrees &&
-              !useCurrentBranch &&
-              !newFeature.branchName.trim()
+              useWorktrees && !useCurrentBranch && !newFeature.branchName.trim()
             }
           >
             Add Feature

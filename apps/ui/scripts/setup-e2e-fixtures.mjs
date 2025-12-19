@@ -12,7 +12,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Resolve workspace root (apps/app/scripts -> workspace root)
+// Resolve workspace root (apps/ui/scripts -> workspace root)
 const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
 const FIXTURE_PATH = path.join(WORKSPACE_ROOT, "test/fixtures/projectA");
 const SPEC_FILE_PATH = path.join(FIXTURE_PATH, ".automaker/app_spec.txt");

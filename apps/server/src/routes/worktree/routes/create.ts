@@ -12,7 +12,13 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import { mkdir } from "fs/promises";
-import { isGitRepo, getErrorMessage, logError, normalizePath } from "../common.js";
+import {
+  isGitRepo,
+  getErrorMessage,
+  logError,
+  normalizePath,
+  ensureInitialCommit,
+} from "../common.js";
 import { trackBranch } from "./branch-tracking.js";
 
 const execAsync = promisify(exec);
@@ -92,6 +98,9 @@ export function createCreateHandler() {
         });
         return;
       }
+
+      // Ensure the repository has at least one commit so worktree commands referencing HEAD succeed
+      await ensureInitialCommit(projectPath);
 
       // First, check if git already has a worktree for this branch (anywhere)
       const existingWorktree = await findExistingWorktreeForBranch(projectPath, branchName);

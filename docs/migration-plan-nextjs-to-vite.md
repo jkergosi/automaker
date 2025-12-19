@@ -29,27 +29,27 @@
 
 Our current Next.js implementation uses **less than 5%** of the framework's capabilities. We're essentially running a static SPA with unnecessary overhead:
 
-| Next.js Feature | Our Usage |
-|-----------------|-----------|
-| Server-Side Rendering | ❌ Not used |
-| Static Site Generation | ❌ Not used |
-| API Routes | ⚠️ Only 2 test endpoints |
-| Image Optimization | ❌ Not used |
-| Dynamic Routing | ❌ Not used |
-| App Router | ⚠️ File structure only |
-| Metadata API | ⚠️ Title/description only |
-| Static Export | ✅ Used (`output: "export"`) |
+| Next.js Feature        | Our Usage                    |
+| ---------------------- | ---------------------------- |
+| Server-Side Rendering  | ❌ Not used                  |
+| Static Site Generation | ❌ Not used                  |
+| API Routes             | ⚠️ Only 2 test endpoints     |
+| Image Optimization     | ❌ Not used                  |
+| Dynamic Routing        | ❌ Not used                  |
+| App Router             | ⚠️ File structure only       |
+| Metadata API           | ⚠️ Title/description only    |
+| Static Export          | ✅ Used (`output: "export"`) |
 
 ### Migration Benefits
 
-| Metric | Current (Next.js) | Expected (Vite) |
-|--------|-------------------|-----------------|
-| Dev server startup | ~8-15s | ~1-3s |
-| HMR speed | ~500ms-2s | ~50-100ms |
-| Production build | ~45-90s | ~15-30s |
-| Bundle overhead | Next.js runtime | None |
-| Type safety (Electron) | 0% | 100% |
-| Debug capabilities | Limited | Full debug console |
+| Metric                 | Current (Next.js) | Expected (Vite)    |
+| ---------------------- | ----------------- | ------------------ |
+| Dev server startup     | ~8-15s            | ~1-3s              |
+| HMR speed              | ~500ms-2s         | ~50-100ms          |
+| Production build       | ~45-90s           | ~15-30s            |
+| Bundle overhead        | Next.js runtime   | None               |
+| Type safety (Electron) | 0%                | 100%               |
+| Debug capabilities     | Limited           | Full debug console |
 
 ### Target Stack
 
@@ -92,26 +92,26 @@ Our current Next.js implementation uses **less than 5%** of the framework's capa
 
 ### Current Electron Layer Issues
 
-| Issue | Impact | Solution |
-|-------|--------|----------|
-| Pure JavaScript | No compile-time safety | Migrate to TypeScript |
-| Untyped IPC handlers | Runtime errors | IPC Schema with generics |
-| String literal channels | Typos cause silent failures | Const enums |
-| No debug tooling | Hard to diagnose issues | Debug console feature |
-| Monolithic main.js | Hard to maintain | Modular IPC organization |
+| Issue                   | Impact                      | Solution                 |
+| ----------------------- | --------------------------- | ------------------------ |
+| Pure JavaScript         | No compile-time safety      | Migrate to TypeScript    |
+| Untyped IPC handlers    | Runtime errors              | IPC Schema with generics |
+| String literal channels | Typos cause silent failures | Const enums              |
+| No debug tooling        | Hard to diagnose issues     | Debug console feature    |
+| Monolithic main.js      | Hard to maintain            | Modular IPC organization |
 
 ### Current Component Structure Issues
 
-| View File | Lines | Issue |
-|-----------|-------|-------|
-| spec-view.tsx | 1,230 | Exceeds 500-line threshold |
-| analysis-view.tsx | 1,134 | Exceeds 500-line threshold |
-| agent-view.tsx | 916 | Exceeds 500-line threshold |
-| welcome-view.tsx | 815 | Exceeds 500-line threshold |
-| context-view.tsx | 735 | Exceeds 500-line threshold |
-| terminal-view.tsx | 697 | Exceeds 500-line threshold |
-| interview-view.tsx | 637 | Exceeds 500-line threshold |
-| board-view.tsx | 685 | ✅ Already has subfolder structure |
+| View File          | Lines | Issue                              |
+| ------------------ | ----- | ---------------------------------- |
+| spec-view.tsx      | 1,230 | Exceeds 500-line threshold         |
+| analysis-view.tsx  | 1,134 | Exceeds 500-line threshold         |
+| agent-view.tsx     | 916   | Exceeds 500-line threshold         |
+| welcome-view.tsx   | 815   | Exceeds 500-line threshold         |
+| context-view.tsx   | 735   | Exceeds 500-line threshold         |
+| terminal-view.tsx  | 697   | Exceeds 500-line threshold         |
+| interview-view.tsx | 637   | Exceeds 500-line threshold         |
+| board-view.tsx     | 685   | ✅ Already has subfolder structure |
 
 ---
 
@@ -322,22 +322,22 @@ libs/types/
 ```typescript
 // libs/types/src/models.ts
 export interface ModelDefinition {
-  id: string
-  name: string
-  provider: ProviderType
-  contextWindow: number
-  maxOutputTokens: number
-  capabilities: ModelCapabilities
+  id: string;
+  name: string;
+  provider: ProviderType;
+  contextWindow: number;
+  maxOutputTokens: number;
+  capabilities: ModelCapabilities;
 }
 
 export interface ModelCapabilities {
-  vision: boolean
-  toolUse: boolean
-  streaming: boolean
-  computerUse: boolean
+  vision: boolean;
+  toolUse: boolean;
+  streaming: boolean;
+  computerUse: boolean;
 }
 
-export type ProviderType = "claude" | "openai" | "gemini" | "ollama"
+export type ProviderType = "claude" | "openai" | "gemini" | "ollama";
 ```
 
 ### @automaker/utils
@@ -366,21 +366,21 @@ export type ErrorType =
   | "validation"
   | "not_found"
   | "server"
-  | "unknown"
+  | "unknown";
 
 export interface ErrorInfo {
-  type: ErrorType
-  message: string
-  userMessage: string
-  retryable: boolean
-  statusCode?: number
+  type: ErrorType;
+  message: string;
+  userMessage: string;
+  retryable: boolean;
+  statusCode?: number;
 }
 
-export function classifyError(error: unknown): ErrorInfo
-export function getUserFriendlyErrorMessage(error: unknown): string
-export function isAbortError(error: unknown): boolean
-export function isAuthenticationError(error: unknown): boolean
-export function isRateLimitError(error: unknown): boolean
+export function classifyError(error: unknown): ErrorInfo;
+export function getUserFriendlyErrorMessage(error: unknown): string;
+export function isAbortError(error: unknown): boolean;
+export function isAuthenticationError(error: unknown): boolean;
+export function isRateLimitError(error: unknown): boolean;
 ```
 
 ### @automaker/platform
@@ -412,18 +412,18 @@ libs/platform/
 
 ```typescript
 // libs/platform/src/paths/path-resolver.ts
-import path from "path"
+import path from "path";
 
 /**
  * Platform-aware path separator
  */
-export const SEP = path.sep
+export const SEP = path.sep;
 
 /**
  * Normalizes a path to use the correct separator for the current OS
  */
 export function normalizePath(inputPath: string): string {
-  return inputPath.replace(/[/\\]/g, SEP)
+  return inputPath.replace(/[/\\]/g, SEP);
 }
 
 /**
@@ -431,80 +431,83 @@ export function normalizePath(inputPath: string): string {
  * Useful for consistent storage/comparison
  */
 export function toPosixPath(inputPath: string): string {
-  return inputPath.replace(/\\/g, "/")
+  return inputPath.replace(/\\/g, "/");
 }
 
 /**
  * Converts a path to Windows format (backslashes)
  */
 export function toWindowsPath(inputPath: string): string {
-  return inputPath.replace(/\//g, "\\")
+  return inputPath.replace(/\//g, "\\");
 }
 
 /**
  * Resolves a path relative to a base, handling platform differences
  */
 export function resolvePath(basePath: string, ...segments: string[]): string {
-  return path.resolve(basePath, ...segments)
+  return path.resolve(basePath, ...segments);
 }
 
 /**
  * Gets the relative path from one location to another
  */
 export function getRelativePath(from: string, to: string): string {
-  return path.relative(from, to)
+  return path.relative(from, to);
 }
 
 /**
  * Joins path segments with proper platform separator
  */
 export function joinPath(...segments: string[]): string {
-  return path.join(...segments)
+  return path.join(...segments);
 }
 
 /**
  * Extracts directory name from a path
  */
 export function getDirname(filePath: string): string {
-  return path.dirname(filePath)
+  return path.dirname(filePath);
 }
 
 /**
  * Extracts filename from a path
  */
 export function getBasename(filePath: string, ext?: string): string {
-  return path.basename(filePath, ext)
+  return path.basename(filePath, ext);
 }
 
 /**
  * Extracts file extension from a path
  */
 export function getExtension(filePath: string): string {
-  return path.extname(filePath)
+  return path.extname(filePath);
 }
 
 /**
  * Checks if a path is absolute
  */
 export function isAbsolutePath(inputPath: string): boolean {
-  return path.isAbsolute(inputPath)
+  return path.isAbsolute(inputPath);
 }
 
 /**
  * Ensures a path is absolute, resolving relative to cwd if needed
  */
-export function ensureAbsolutePath(inputPath: string, basePath?: string): string {
+export function ensureAbsolutePath(
+  inputPath: string,
+  basePath?: string
+): string {
   if (isAbsolutePath(inputPath)) {
-    return inputPath
+    return inputPath;
   }
-  return resolvePath(basePath || process.cwd(), inputPath)
+  return resolvePath(basePath || process.cwd(), inputPath);
 }
 ```
 
 ```typescript
 // libs/platform/src/paths/path-constants.ts
-import path from "path"
-import os from "os"
+import path from "path";
+import os from "os";
 
 /**
  * Common system paths
@@ -518,21 +521,27 @@ export const SYSTEM_PATHS = {
 
   /** Current working directory */
   cwd: process.cwd(),
-} as const
+} as const;
 
 /**
  * Gets the appropriate app data directory for the current platform
  */
 export function getAppDataPath(appName: string): string {
-  const platform = process.platform
+  const platform = process.platform;
 
   switch (platform) {
     case "win32":
-      return path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), appName)
+      return path.join(
+        process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+        appName
+      );
     case "darwin":
-      return path.join(os.homedir(), "Library", "Application Support", appName)
+      return path.join(os.homedir(), "Library", "Application Support", appName);
     default: // Linux and others
-      return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), appName)
+      return path.join(
+        process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"),
+        appName
+      );
   }
 }
 
@@ -540,15 +549,22 @@ export function getAppDataPath(appName: string): string {
  * Gets the appropriate cache directory for the current platform
  */
 export function getCachePath(appName: string): string {
-  const platform = process.platform
+  const platform = process.platform;
 
   switch (platform) {
     case "win32":
-      return path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), appName, "Cache")
+      return path.join(
+        process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
+        appName,
+        "Cache"
+      );
     case "darwin":
-      return path.join(os.homedir(), "Library", "Caches", appName)
+      return path.join(os.homedir(), "Library", "Caches", appName);
     default:
-      return path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache"), appName)
+      return path.join(
+        process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache"),
+        appName
+      );
   }
 }
 
@@ -556,15 +572,24 @@ export function getCachePath(appName: string): string {
  * Gets the appropriate logs directory for the current platform
  */
 export function getLogsPath(appName: string): string {
-  const platform = process.platform
+  const platform = process.platform;
 
   switch (platform) {
     case "win32":
-      return path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), appName, "Logs")
+      return path.join(
+        process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
+        appName,
+        "Logs"
+      );
     case "darwin":
-      return path.join(os.homedir(), "Library", "Logs", appName)
+      return path.join(os.homedir(), "Library", "Logs", appName);
     default:
-      return path.join(process.env.XDG_STATE_HOME || path.join(os.homedir(), ".local", "state"), appName, "logs")
+      return path.join(
+        process.env.XDG_STATE_HOME ||
+          path.join(os.homedir(), ".local", "state"),
+        appName,
+        "logs"
+      );
   }
 }
 
@@ -572,17 +597,19 @@ export function getLogsPath(appName: string): string {
  * Gets the user's Documents directory
  */
 export function getDocumentsPath(): string {
-  const platform = process.platform
+  const platform = process.platform;
 
   switch (platform) {
     case "win32":
       return process.env.USERPROFILE
         ? path.join(process.env.USERPROFILE, "Documents")
-        : path.join(os.homedir(), "Documents")
+        : path.join(os.homedir(), "Documents");
     case "darwin":
-      return path.join(os.homedir(), "Documents")
+      return path.join(os.homedir(), "Documents");
     default:
-      return process.env.XDG_DOCUMENTS_DIR || path.join(os.homedir(), "Documents")
+      return (
+        process.env.XDG_DOCUMENTS_DIR || path.join(os.homedir(), "Documents")
+      );
   }
 }
 
@@ -590,87 +617,106 @@ export function getDocumentsPath(): string {
  * Gets the user's Desktop directory
  */
 export function getDesktopPath(): string {
-  const platform = process.platform
+  const platform = process.platform;
 
   switch (platform) {
     case "win32":
       return process.env.USERPROFILE
         ? path.join(process.env.USERPROFILE, "Desktop")
-        : path.join(os.homedir(), "Desktop")
+        : path.join(os.homedir(), "Desktop");
     case "darwin":
-      return path.join(os.homedir(), "Desktop")
+      return path.join(os.homedir(), "Desktop");
     default:
-      return process.env.XDG_DESKTOP_DIR || path.join(os.homedir(), "Desktop")
+      return process.env.XDG_DESKTOP_DIR || path.join(os.homedir(), "Desktop");
   }
 }
 ```
 
 ```typescript
 // libs/platform/src/paths/path-validator.ts
-import path from "path"
-import { isAbsolutePath } from "./path-resolver"
+import path from "path";
+import { isAbsolutePath } from "./path-resolver";
 
 /**
  * Characters that are invalid in file/directory names on Windows
  */
-const WINDOWS_INVALID_CHARS = /[<>:"|?*\x00-\x1f]/g
+const WINDOWS_INVALID_CHARS = /[<>:"|?*\x00-\x1f]/g;
 
 /**
  * Reserved names on Windows (case-insensitive)
  */
 const WINDOWS_RESERVED_NAMES = [
-  "CON", "PRN", "AUX", "NUL",
-  "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-  "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-]
+  "CON",
+  "PRN",
+  "AUX",
+  "NUL",
+  "COM1",
+  "COM2",
+  "COM3",
+  "COM4",
+  "COM5",
+  "COM6",
+  "COM7",
+  "COM8",
+  "COM9",
+  "LPT1",
+  "LPT2",
+  "LPT3",
+  "LPT4",
+  "LPT5",
+  "LPT6",
+  "LPT7",
+  "LPT8",
+  "LPT9",
+];
 
 export interface PathValidationResult {
-  valid: boolean
-  errors: string[]
-  sanitized?: string
+  valid: boolean;
+  errors: string[];
+  sanitized?: string;
 }
 
 /**
  * Validates a filename for the current platform
  */
 export function validateFilename(filename: string): PathValidationResult {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   if (!filename || filename.trim().length === 0) {
-    return { valid: false, errors: ["Filename cannot be empty"] }
+    return { valid: false, errors: ["Filename cannot be empty"] };
   }
 
   // Check for path separators (filename shouldn't be a path)
   if (filename.includes("/") || filename.includes("\\")) {
-    errors.push("Filename cannot contain path separators")
+    errors.push("Filename cannot contain path separators");
   }
 
   // Platform-specific checks
   if (process.platform === "win32") {
     if (WINDOWS_INVALID_CHARS.test(filename)) {
-      errors.push("Filename contains invalid characters for Windows")
+      errors.push("Filename contains invalid characters for Windows");
     }
 
-    const nameWithoutExt = filename.split(".")[0].toUpperCase()
+    const nameWithoutExt = filename.split(".")[0].toUpperCase();
     if (WINDOWS_RESERVED_NAMES.includes(nameWithoutExt)) {
-      errors.push(`"${nameWithoutExt}" is a reserved name on Windows`)
+      errors.push(`"${nameWithoutExt}" is a reserved name on Windows`);
     }
 
     if (filename.endsWith(" ") || filename.endsWith(".")) {
-      errors.push("Filename cannot end with a space or period on Windows")
+      errors.push("Filename cannot end with a space or period on Windows");
     }
   }
 
   // Check length
   if (filename.length > 255) {
-    errors.push("Filename exceeds maximum length of 255 characters")
+    errors.push("Filename exceeds maximum length of 255 characters");
   }
 
   return {
     valid: errors.length === 0,
     errors,
-    sanitized: errors.length > 0 ? sanitizeFilename(filename) : filename
-  }
+    sanitized: errors.length > 0 ? sanitizeFilename(filename) : filename,
+  };
 }
 
 /**
@@ -680,98 +726,102 @@ export function sanitizeFilename(filename: string): string {
   let sanitized = filename
     .replace(WINDOWS_INVALID_CHARS, "_")
     .replace(/[/\\]/g, "_")
-    .trim()
+    .trim();
 
   // Handle Windows reserved names
-  const nameWithoutExt = sanitized.split(".")[0].toUpperCase()
+  const nameWithoutExt = sanitized.split(".")[0].toUpperCase();
   if (WINDOWS_RESERVED_NAMES.includes(nameWithoutExt)) {
-    sanitized = "_" + sanitized
+    sanitized = "_" + sanitized;
   }
 
   // Remove trailing spaces and periods (Windows)
-  sanitized = sanitized.replace(/[\s.]+$/, "")
+  sanitized = sanitized.replace(/[\s.]+$/, "");
 
   // Ensure not empty
   if (!sanitized) {
-    sanitized = "unnamed"
+    sanitized = "unnamed";
   }
 
   // Truncate if too long
   if (sanitized.length > 255) {
-    const ext = path.extname(sanitized)
-    const name = path.basename(sanitized, ext)
-    sanitized = name.slice(0, 255 - ext.length) + ext
+    const ext = path.extname(sanitized);
+    const name = path.basename(sanitized, ext);
+    sanitized = name.slice(0, 255 - ext.length) + ext;
   }
 
-  return sanitized
+  return sanitized;
 }
 
 /**
  * Validates a full path for the current platform
  */
 export function validatePath(inputPath: string): PathValidationResult {
-  const errors: string[] = []
+  const errors: string[] = [];
 
   if (!inputPath || inputPath.trim().length === 0) {
-    return { valid: false, errors: ["Path cannot be empty"] }
+    return { valid: false, errors: ["Path cannot be empty"] };
   }
 
   // Check total path length
-  const maxPathLength = process.platform === "win32" ? 260 : 4096
+  const maxPathLength = process.platform === "win32" ? 260 : 4096;
   if (inputPath.length > maxPathLength) {
-    errors.push(`Path exceeds maximum length of ${maxPathLength} characters`)
+    errors.push(`Path exceeds maximum length of ${maxPathLength} characters`);
   }
 
   // Validate each segment
-  const segments = inputPath.split(/[/\\]/).filter(Boolean)
+  const segments = inputPath.split(/[/\\]/).filter(Boolean);
   for (const segment of segments) {
     // Skip drive letters on Windows
     if (process.platform === "win32" && /^[a-zA-Z]:$/.test(segment)) {
-      continue
+      continue;
     }
 
-    const segmentValidation = validateFilename(segment)
+    const segmentValidation = validateFilename(segment);
     if (!segmentValidation.valid) {
-      errors.push(...segmentValidation.errors.map(e => `Segment "${segment}": ${e}`))
+      errors.push(
+        ...segmentValidation.errors.map((e) => `Segment "${segment}": ${e}`)
+      );
     }
   }
 
   return {
     valid: errors.length === 0,
-    errors
-  }
+    errors,
+  };
 }
 
 /**
  * Checks if a path is within a base directory (prevents directory traversal)
  */
 export function isPathWithin(childPath: string, parentPath: string): boolean {
-  const resolvedChild = path.resolve(childPath)
-  const resolvedParent = path.resolve(parentPath)
+  const resolvedChild = path.resolve(childPath);
+  const resolvedParent = path.resolve(parentPath);
 
-  return resolvedChild.startsWith(resolvedParent + path.sep) ||
-         resolvedChild === resolvedParent
+  return (
+    resolvedChild.startsWith(resolvedParent + path.sep) ||
+    resolvedChild === resolvedParent
+  );
 }
 ```
 
 ```typescript
 // libs/platform/src/os/platform-info.ts
-import os from "os"
+import os from "os";
 
-export type Platform = "windows" | "macos" | "linux" | "unknown"
-export type Architecture = "x64" | "arm64" | "ia32" | "unknown"
+export type Platform = "windows" | "macos" | "linux" | "unknown";
+export type Architecture = "x64" | "arm64" | "ia32" | "unknown";
 
 export interface PlatformInfo {
-  platform: Platform
-  arch: Architecture
-  release: string
-  hostname: string
-  username: string
-  cpus: number
-  totalMemory: number
-  freeMemory: number
-  isWsl: boolean
-  isDocker: boolean
+  platform: Platform;
+  arch: Architecture;
+  release: string;
+  hostname: string;
+  username: string;
+  cpus: number;
+  totalMemory: number;
+  freeMemory: number;
+  isWsl: boolean;
+  isDocker: boolean;
 }
 
 /**
@@ -780,13 +830,13 @@ export interface PlatformInfo {
 export function getPlatform(): Platform {
   switch (process.platform) {
     case "win32":
-      return "windows"
+      return "windows";
     case "darwin":
-      return "macos"
+      return "macos";
     case "linux":
-      return "linux"
+      return "linux";
     default:
-      return "unknown"
+      return "unknown";
   }
 }
 
@@ -796,13 +846,13 @@ export function getPlatform(): Platform {
 export function getArchitecture(): Architecture {
   switch (process.arch) {
     case "x64":
-      return "x64"
+      return "x64";
     case "arm64":
-      return "arm64"
+      return "arm64";
     case "ia32":
-      return "ia32"
+      return "ia32";
     default:
-      return "unknown"
+      return "unknown";
   }
 }
 
@@ -810,34 +860,34 @@ export function getArchitecture(): Architecture {
  * Checks if running on Windows
  */
 export function isWindows(): boolean {
-  return process.platform === "win32"
+  return process.platform === "win32";
 }
 
 /**
  * Checks if running on macOS
  */
 export function isMacOS(): boolean {
-  return process.platform === "darwin"
+  return process.platform === "darwin";
 }
 
 /**
  * Checks if running on Linux
  */
 export function isLinux(): boolean {
-  return process.platform === "linux"
+  return process.platform === "linux";
 }
 
 /**
  * Checks if running in WSL (Windows Subsystem for Linux)
  */
 export function isWsl(): boolean {
-  if (process.platform !== "linux") return false
+  if (process.platform !== "linux") return false;
 
   try {
-    const release = os.release().toLowerCase()
-    return release.includes("microsoft") || release.includes("wsl")
+    const release = os.release().toLowerCase();
+    return release.includes("microsoft") || release.includes("wsl");
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -846,12 +896,14 @@ export function isWsl(): boolean {
  */
 export function isDocker(): boolean {
   try {
-    const fs = require("fs")
-    return fs.existsSync("/.dockerenv") ||
-           (fs.existsSync("/proc/1/cgroup") &&
-            fs.readFileSync("/proc/1/cgroup", "utf8").includes("docker"))
+    const fs = require("fs");
+    return (
+      fs.existsSync("/.dockerenv") ||
+      (fs.existsSync("/proc/1/cgroup") &&
+        fs.readFileSync("/proc/1/cgroup", "utf8").includes("docker"))
+    );
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -869,33 +921,33 @@ export function getPlatformInfo(): PlatformInfo {
     totalMemory: os.totalmem(),
     freeMemory: os.freemem(),
     isWsl: isWsl(),
-    isDocker: isDocker()
-  }
+    isDocker: isDocker(),
+  };
 }
 
 /**
  * Gets the appropriate line ending for the current platform
  */
 export function getLineEnding(): string {
-  return isWindows() ? "\r\n" : "\n"
+  return isWindows() ? "\r\n" : "\n";
 }
 
 /**
  * Normalizes line endings to the current platform
  */
 export function normalizeLineEndings(text: string): string {
-  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-  return isWindows() ? normalized.replace(/\n/g, "\r\n") : normalized
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  return isWindows() ? normalized.replace(/\n/g, "\r\n") : normalized;
 }
 ```
 
 ```typescript
 // libs/platform/src/os/shell-commands.ts
-import { isWindows, isMacOS } from "./platform-info"
+import { isWindows, isMacOS } from "./platform-info";
 
 export interface ShellCommand {
-  command: string
-  args: string[]
+  command: string;
+  args: string[];
 }
 
 /**
@@ -903,11 +955,11 @@ export interface ShellCommand {
  */
 export function getOpenCommand(target: string): ShellCommand {
   if (isWindows()) {
-    return { command: "cmd", args: ["/c", "start", "", target] }
+    return { command: "cmd", args: ["/c", "start", "", target] };
   } else if (isMacOS()) {
-    return { command: "open", args: [target] }
+    return { command: "open", args: [target] };
   } else {
-    return { command: "xdg-open", args: [target] }
+    return { command: "xdg-open", args: [target] };
   }
 }
 
@@ -916,12 +968,12 @@ export function getOpenCommand(target: string): ShellCommand {
  */
 export function getRevealCommand(filePath: string): ShellCommand {
   if (isWindows()) {
-    return { command: "explorer", args: ["/select,", filePath] }
+    return { command: "explorer", args: ["/select,", filePath] };
   } else if (isMacOS()) {
-    return { command: "open", args: ["-R", filePath] }
+    return { command: "open", args: ["-R", filePath] };
   } else {
     // Linux: try multiple file managers
-    return { command: "xdg-open", args: [require("path").dirname(filePath)] }
+    return { command: "xdg-open", args: [require("path").dirname(filePath)] };
   }
 }
 
@@ -930,9 +982,9 @@ export function getRevealCommand(filePath: string): ShellCommand {
  */
 export function getDefaultShell(): string {
   if (isWindows()) {
-    return process.env.COMSPEC || "cmd.exe"
+    return process.env.COMSPEC || "cmd.exe";
   }
-  return process.env.SHELL || "/bin/sh"
+  return process.env.SHELL || "/bin/sh";
 }
 
 /**
@@ -940,9 +992,9 @@ export function getDefaultShell(): string {
  */
 export function getShellArgs(command: string): ShellCommand {
   if (isWindows()) {
-    return { command: "cmd.exe", args: ["/c", command] }
+    return { command: "cmd.exe", args: ["/c", command] };
   }
-  return { command: "/bin/sh", args: ["-c", command] }
+  return { command: "/bin/sh", args: ["-c", command] };
 }
 
 /**
@@ -951,52 +1003,52 @@ export function getShellArgs(command: string): ShellCommand {
 export function escapeShellArg(arg: string): string {
   if (isWindows()) {
     // Windows cmd.exe escaping
-    return `"${arg.replace(/"/g, '""')}"`
+    return `"${arg.replace(/"/g, '""')}"`;
   }
   // POSIX shell escaping
-  return `'${arg.replace(/'/g, "'\\''")}'`
+  return `'${arg.replace(/'/g, "'\\''")}'`;
 }
 ```
 
 ```typescript
 // libs/platform/src/os/env-utils.ts
-import { isWindows } from "./platform-info"
+import { isWindows } from "./platform-info";
 
 /**
  * Gets an environment variable with a fallback
  */
 export function getEnv(key: string, fallback?: string): string | undefined {
-  return process.env[key] ?? fallback
+  return process.env[key] ?? fallback;
 }
 
 /**
  * Gets an environment variable, throwing if not set
  */
 export function requireEnv(key: string): string {
-  const value = process.env[key]
+  const value = process.env[key];
   if (value === undefined) {
-    throw new Error(`Required environment variable "${key}" is not set`)
+    throw new Error(`Required environment variable "${key}" is not set`);
   }
-  return value
+  return value;
 }
 
 /**
  * Parses a boolean environment variable
  */
 export function getBoolEnv(key: string, fallback = false): boolean {
-  const value = process.env[key]
-  if (value === undefined) return fallback
-  return ["true", "1", "yes", "on"].includes(value.toLowerCase())
+  const value = process.env[key];
+  if (value === undefined) return fallback;
+  return ["true", "1", "yes", "on"].includes(value.toLowerCase());
 }
 
 /**
  * Parses a numeric environment variable
  */
 export function getNumericEnv(key: string, fallback: number): number {
-  const value = process.env[key]
-  if (value === undefined) return fallback
-  const parsed = parseInt(value, 10)
-  return isNaN(parsed) ? fallback : parsed
+  const value = process.env[key];
+  if (value === undefined) return fallback;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? fallback : parsed;
 }
 
 /**
@@ -1004,60 +1056,68 @@ export function getNumericEnv(key: string, fallback: number): number {
  * Supports both $VAR and ${VAR} syntax, plus %VAR% on Windows
  */
 export function expandEnvVars(input: string): string {
-  let result = input
+  let result = input;
 
   // Expand ${VAR} syntax
-  result = result.replace(/\$\{([^}]+)\}/g, (_, name) => process.env[name] || "")
+  result = result.replace(
+    /\$\{([^}]+)\}/g,
+    (_, name) => process.env[name] || ""
+  );
 
   // Expand $VAR syntax (not followed by another word char)
-  result = result.replace(/\$([A-Za-z_][A-Za-z0-9_]*)(?![A-Za-z0-9_])/g, (_, name) => process.env[name] || "")
+  result = result.replace(
+    /\$([A-Za-z_][A-Za-z0-9_]*)(?![A-Za-z0-9_])/g,
+    (_, name) => process.env[name] || ""
+  );
 
   // Expand %VAR% syntax (Windows)
   if (isWindows()) {
-    result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] || "")
+    result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] || "");
   }
 
-  return result
+  return result;
 }
 
 /**
  * Gets the PATH environment variable as an array
  */
 export function getPathEntries(): string[] {
-  const pathVar = process.env.PATH || process.env.Path || ""
-  const separator = isWindows() ? ";" : ":"
-  return pathVar.split(separator).filter(Boolean)
+  const pathVar = process.env.PATH || process.env.Path || "";
+  const separator = isWindows() ? ";" : ":";
+  return pathVar.split(separator).filter(Boolean);
 }
 
 /**
  * Checks if a command is available in PATH
  */
 export function isCommandInPath(command: string): boolean {
-  const pathEntries = getPathEntries()
-  const extensions = isWindows() ? (process.env.PATHEXT || ".COM;.EXE;.BAT;.CMD").split(";") : [""]
-  const path = require("path")
-  const fs = require("fs")
+  const pathEntries = getPathEntries();
+  const extensions = isWindows()
+    ? (process.env.PATHEXT || ".COM;.EXE;.BAT;.CMD").split(";")
+    : [""];
+  const path = require("path");
+  const fs = require("fs");
 
   for (const dir of pathEntries) {
     for (const ext of extensions) {
-      const fullPath = path.join(dir, command + ext)
+      const fullPath = path.join(dir, command + ext);
       try {
-        fs.accessSync(fullPath, fs.constants.X_OK)
-        return true
+        fs.accessSync(fullPath, fs.constants.X_OK);
+        return true;
       } catch {
         // Continue searching
       }
     }
   }
 
-  return false
+  return false;
 }
 ```
 
 ```typescript
 // libs/platform/src/fs/safe-fs.ts
-import fs from "fs"
-import path from "path"
+import fs from "fs";
+import path from "path";
 
 /**
  * Safely reads a file, following symlinks but preventing escape from base directory
@@ -1067,19 +1127,19 @@ export async function safeReadFile(
   basePath: string,
   encoding: BufferEncoding = "utf8"
 ): Promise<string> {
-  const resolvedPath = path.resolve(filePath)
-  const resolvedBase = path.resolve(basePath)
+  const resolvedPath = path.resolve(filePath);
+  const resolvedBase = path.resolve(basePath);
 
   // Resolve symlinks
-  const realPath = await fs.promises.realpath(resolvedPath)
-  const realBase = await fs.promises.realpath(resolvedBase)
+  const realPath = await fs.promises.realpath(resolvedPath);
+  const realBase = await fs.promises.realpath(resolvedBase);
 
   // Ensure resolved path is within base
   if (!realPath.startsWith(realBase + path.sep) && realPath !== realBase) {
-    throw new Error(`Path "${filePath}" resolves outside of allowed directory`)
+    throw new Error(`Path "${filePath}" resolves outside of allowed directory`);
   }
 
-  return fs.promises.readFile(realPath, encoding)
+  return fs.promises.readFile(realPath, encoding);
 }
 
 /**
@@ -1090,33 +1150,39 @@ export async function safeWriteFile(
   basePath: string,
   content: string
 ): Promise<void> {
-  const resolvedPath = path.resolve(filePath)
-  const resolvedBase = path.resolve(basePath)
+  const resolvedPath = path.resolve(filePath);
+  const resolvedBase = path.resolve(basePath);
 
   // Ensure path is within base before any symlink resolution
-  if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
-    throw new Error(`Path "${filePath}" is outside of allowed directory`)
+  if (
+    !resolvedPath.startsWith(resolvedBase + path.sep) &&
+    resolvedPath !== resolvedBase
+  ) {
+    throw new Error(`Path "${filePath}" is outside of allowed directory`);
   }
 
   // Check parent directory exists and is within base
-  const parentDir = path.dirname(resolvedPath)
+  const parentDir = path.dirname(resolvedPath);
 
   try {
-    const realParent = await fs.promises.realpath(parentDir)
-    const realBase = await fs.promises.realpath(resolvedBase)
+    const realParent = await fs.promises.realpath(parentDir);
+    const realBase = await fs.promises.realpath(resolvedBase);
 
-    if (!realParent.startsWith(realBase + path.sep) && realParent !== realBase) {
-      throw new Error(`Parent directory resolves outside of allowed directory`)
+    if (
+      !realParent.startsWith(realBase + path.sep) &&
+      realParent !== realBase
+    ) {
+      throw new Error(`Parent directory resolves outside of allowed directory`);
     }
   } catch (error) {
     // Parent doesn't exist, that's OK - we'll create it
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error
+      throw error;
     }
   }
 
-  await fs.promises.mkdir(path.dirname(resolvedPath), { recursive: true })
-  await fs.promises.writeFile(resolvedPath, content, "utf8")
+  await fs.promises.mkdir(path.dirname(resolvedPath), { recursive: true });
+  await fs.promises.writeFile(resolvedPath, content, "utf8");
 }
 
 /**
@@ -1124,10 +1190,10 @@ export async function safeWriteFile(
  */
 export async function pathExists(filePath: string): Promise<boolean> {
   try {
-    await fs.promises.access(filePath)
-    return true
+    await fs.promises.access(filePath);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -1136,9 +1202,9 @@ export async function pathExists(filePath: string): Promise<boolean> {
  */
 export async function safeStat(filePath: string): Promise<fs.Stats | null> {
   try {
-    return await fs.promises.stat(filePath)
+    return await fs.promises.stat(filePath);
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -1146,27 +1212,24 @@ export async function safeStat(filePath: string): Promise<fs.Stats | null> {
  * Recursively removes a directory
  */
 export async function removeDirectory(dirPath: string): Promise<void> {
-  await fs.promises.rm(dirPath, { recursive: true, force: true })
+  await fs.promises.rm(dirPath, { recursive: true, force: true });
 }
 
 /**
  * Copies a file or directory
  */
 export async function copy(src: string, dest: string): Promise<void> {
-  const stats = await fs.promises.stat(src)
+  const stats = await fs.promises.stat(src);
 
   if (stats.isDirectory()) {
-    await fs.promises.mkdir(dest, { recursive: true })
-    const entries = await fs.promises.readdir(src, { withFileTypes: true })
+    await fs.promises.mkdir(dest, { recursive: true });
+    const entries = await fs.promises.readdir(src, { withFileTypes: true });
 
     for (const entry of entries) {
-      await copy(
-        path.join(src, entry.name),
-        path.join(dest, entry.name)
-      )
+      await copy(path.join(src, entry.name), path.join(dest, entry.name));
     }
   } else {
-    await fs.promises.copyFile(src, dest)
+    await fs.promises.copyFile(src, dest);
   }
 }
 ```
@@ -1176,17 +1239,17 @@ export async function copy(src: string, dest: string): Promise<void> {
 // Main barrel export
 
 // Path utilities
-export * from "./paths/path-resolver"
-export * from "./paths/path-constants"
-export * from "./paths/path-validator"
+export * from "./paths/path-resolver";
+export * from "./paths/path-constants";
+export * from "./paths/path-validator";
 
 // OS utilities
-export * from "./os/platform-info"
-export * from "./os/shell-commands"
-export * from "./os/env-utils"
+export * from "./os/platform-info";
+export * from "./os/shell-commands";
+export * from "./os/env-utils";
 
 // File system utilities
-export * from "./fs/safe-fs"
+export * from "./fs/safe-fs";
 ```
 
 ### @automaker/model-resolver
@@ -1226,96 +1289,114 @@ libs/ipc-types/
 
 ```typescript
 // electron/ipc/ipc-schema.ts
-import type { OpenDialogOptions, SaveDialogOptions } from "electron"
+import type { OpenDialogOptions, SaveDialogOptions } from "electron";
 
 // Dialog result types
 export interface DialogResult<T = unknown> {
-  canceled: boolean
-  filePaths?: string[]
-  filePath?: string
-  data?: T
+  canceled: boolean;
+  filePaths?: string[];
+  filePath?: string;
+  data?: T;
 }
 
 // App path names (from Electron)
 export type AppPathName =
-  | "home" | "appData" | "userData" | "sessionData"
-  | "temp" | "exe" | "module" | "desktop"
-  | "documents" | "downloads" | "music"
-  | "pictures" | "videos" | "recent" | "logs" | "crashDumps"
+  | "home"
+  | "appData"
+  | "userData"
+  | "sessionData"
+  | "temp"
+  | "exe"
+  | "module"
+  | "desktop"
+  | "documents"
+  | "downloads"
+  | "music"
+  | "pictures"
+  | "videos"
+  | "recent"
+  | "logs"
+  | "crashDumps";
 
 // Complete IPC Schema with request/response types
 export interface IPCSchema {
   // Dialog operations
   "dialog:openDirectory": {
-    request: Partial<OpenDialogOptions>
-    response: DialogResult<string[]>
-  }
+    request: Partial<OpenDialogOptions>;
+    response: DialogResult<string[]>;
+  };
   "dialog:openFile": {
-    request: Partial<OpenDialogOptions>
-    response: DialogResult<string[]>
-  }
+    request: Partial<OpenDialogOptions>;
+    response: DialogResult<string[]>;
+  };
   "dialog:saveFile": {
-    request: Partial<SaveDialogOptions>
-    response: DialogResult<string>
-  }
+    request: Partial<SaveDialogOptions>;
+    response: DialogResult<string>;
+  };
 
   // Shell operations
   "shell:openExternal": {
-    request: { url: string }
-    response: { success: boolean; error?: string }
-  }
+    request: { url: string };
+    response: { success: boolean; error?: string };
+  };
   "shell:openPath": {
-    request: { path: string }
-    response: { success: boolean; error?: string }
-  }
+    request: { path: string };
+    response: { success: boolean; error?: string };
+  };
 
   // App info
   "app:getPath": {
-    request: { name: AppPathName }
-    response: string
-  }
+    request: { name: AppPathName };
+    response: string;
+  };
   "app:getVersion": {
-    request: void
-    response: string
-  }
+    request: void;
+    response: string;
+  };
   "app:isPackaged": {
-    request: void
-    response: boolean
-  }
+    request: void;
+    response: boolean;
+  };
 
   // Server management
   "server:getUrl": {
-    request: void
-    response: string
-  }
+    request: void;
+    response: string;
+  };
 
   // Connection test
-  "ping": {
-    request: void
-    response: "pong"
-  }
+  ping: {
+    request: void;
+    response: "pong";
+  };
 
   // Debug console
   "debug:log": {
     request: {
-      level: DebugLogLevel
-      category: DebugCategory
-      message: string
-      args: unknown[]
-    }
-    response: void
-  }
+      level: DebugLogLevel;
+      category: DebugCategory;
+      message: string;
+      args: unknown[];
+    };
+    response: void;
+  };
 }
 
-export type DebugLogLevel = "info" | "warn" | "error" | "debug" | "success"
+export type DebugLogLevel = "info" | "warn" | "error" | "debug" | "success";
 export type DebugCategory =
-  | "general" | "ipc" | "route" | "network"
-  | "perf" | "state" | "lifecycle" | "updater"
+  | "general"
+  | "ipc"
+  | "route"
+  | "network"
+  | "perf"
+  | "state"
+  | "lifecycle"
+  | "updater";
 
 // Type extractors
-export type IPCChannel = keyof IPCSchema
-export type IPCRequest<T extends IPCChannel> = IPCSchema[T]["request"]
-export type IPCResponse<T extends IPCChannel> = IPCSchema[T]["response"]
+export type IPCChannel = keyof IPCSchema;
+export type IPCRequest<T extends IPCChannel> = IPCSchema[T]["request"];
+export type IPCResponse<T extends IPCChannel> = IPCSchema[T]["response"];
 ```
 
 ### Modular IPC Organization
@@ -1326,12 +1407,12 @@ export const DIALOG_CHANNELS = {
   OPEN_DIRECTORY: "dialog:openDirectory",
   OPEN_FILE: "dialog:openFile",
   SAVE_FILE: "dialog:saveFile",
-} as const
+} as const;
 
 // electron/ipc/dialog/dialog-context.ts
-import { contextBridge, ipcRenderer } from "electron"
-import { DIALOG_CHANNELS } from "./dialog-channels"
-import type { IPCRequest, IPCResponse } from "../ipc-schema"
+import { contextBridge, ipcRenderer } from "electron";
+import { DIALOG_CHANNELS } from "./dialog-channels";
+import type { IPCRequest, IPCResponse } from "../ipc-schema";
 
 export function exposeDialogContext(): void {
   contextBridge.exposeInMainWorld("dialogAPI", {
@@ -1343,65 +1424,69 @@ export function exposeDialogContext(): void {
 
     saveFile: (options?: IPCRequest<"dialog:saveFile">) =>
       ipcRenderer.invoke(DIALOG_CHANNELS.SAVE_FILE, options),
-  })
+  });
 }
 
 // electron/ipc/dialog/dialog-listeners.ts
-import { ipcMain, dialog, BrowserWindow } from "electron"
-import { DIALOG_CHANNELS } from "./dialog-channels"
-import type { IPCRequest, IPCResponse } from "../ipc-schema"
-import { debugLog } from "../../helpers/debug-mode"
+import { ipcMain, dialog, BrowserWindow } from "electron";
+import { DIALOG_CHANNELS } from "./dialog-channels";
+import type { IPCRequest, IPCResponse } from "../ipc-schema";
+import { debugLog } from "../../helpers/debug-mode";
 
 export function addDialogEventListeners(mainWindow: BrowserWindow): void {
   ipcMain.handle(
     DIALOG_CHANNELS.OPEN_DIRECTORY,
     async (_, options: IPCRequest<"dialog:openDirectory"> = {}) => {
-      debugLog.ipc(`OPEN_DIRECTORY called with options: ${JSON.stringify(options)}`)
+      debugLog.ipc(
+        `OPEN_DIRECTORY called with options: ${JSON.stringify(options)}`
+      );
 
       const result = await dialog.showOpenDialog(mainWindow, {
         properties: ["openDirectory", "createDirectory"],
         ...options,
-      })
+      });
 
-      debugLog.ipc(`OPEN_DIRECTORY result: canceled=${result.canceled}, paths=${result.filePaths.length}`)
+      debugLog.ipc(
+        `OPEN_DIRECTORY result: canceled=${result.canceled}, paths=${result.filePaths.length}`
+      );
 
       return {
         canceled: result.canceled,
         filePaths: result.filePaths,
-      } satisfies IPCResponse<"dialog:openDirectory">
+      } satisfies IPCResponse<"dialog:openDirectory">;
     }
-  )
+  );
 
   ipcMain.handle(
     DIALOG_CHANNELS.OPEN_FILE,
     async (_, options: IPCRequest<"dialog:openFile"> = {}) => {
-      debugLog.ipc(`OPEN_FILE called`)
+      debugLog.ipc(`OPEN_FILE called`);
 
       const result = await dialog.showOpenDialog(mainWindow, {
         properties: ["openFile"],
         ...options,
-      })
+      });
 
       return {
         canceled: result.canceled,
         filePaths: result.filePaths,
-      } satisfies IPCResponse<"dialog:openFile">
+      } satisfies IPCResponse<"dialog:openFile">;
     }
-  )
+  );
 
   ipcMain.handle(
     DIALOG_CHANNELS.SAVE_FILE,
     async (_, options: IPCRequest<"dialog:saveFile"> = {}) => {
-      debugLog.ipc(`SAVE_FILE called`)
+      debugLog.ipc(`SAVE_FILE called`);
 
-      const result = await dialog.showSaveDialog(mainWindow, options)
+      const result = await dialog.showSaveDialog(mainWindow, options);
 
       return {
         canceled: result.canceled,
         filePath: result.filePath,
-      } satisfies IPCResponse<"dialog:saveFile">
+      } satisfies IPCResponse<"dialog:saveFile">;
     }
-  )
+  );
 }
 ```
 
@@ -1411,19 +1496,19 @@ export function addDialogEventListeners(mainWindow: BrowserWindow): void {
 
 ### Priority Matrix
 
-| Priority | View | Lines | Action Required |
-|----------|------|-------|-----------------|
-| 🔴 P0 | spec-view | 1,230 | Create subfolder with components/, dialogs/, hooks/ |
-| 🔴 P0 | analysis-view | 1,134 | Create subfolder with components/, dialogs/, hooks/ |
-| 🔴 P0 | agent-view | 916 | Create subfolder, extract message list, input, sidebar |
-| 🟡 P1 | welcome-view | 815 | Create subfolder, extract sections |
-| 🟡 P1 | context-view | 735 | Create subfolder, extract components |
-| 🟡 P1 | terminal-view | 697 | Expand existing subfolder |
-| 🟡 P1 | interview-view | 637 | Create subfolder |
-| 🟢 P2 | settings-view | 178 | Move dialogs from components/ to dialogs/ |
-| ✅ Done | board-view | 685 | Already properly structured |
-| ✅ Done | setup-view | 144 | Already properly structured |
-| ✅ Done | profiles-view | 300 | Already properly structured |
+| Priority | View           | Lines | Action Required                                        |
+| -------- | -------------- | ----- | ------------------------------------------------------ |
+| 🔴 P0    | spec-view      | 1,230 | Create subfolder with components/, dialogs/, hooks/    |
+| 🔴 P0    | analysis-view  | 1,134 | Create subfolder with components/, dialogs/, hooks/    |
+| 🔴 P0    | agent-view     | 916   | Create subfolder, extract message list, input, sidebar |
+| 🟡 P1    | welcome-view   | 815   | Create subfolder, extract sections                     |
+| 🟡 P1    | context-view   | 735   | Create subfolder, extract components                   |
+| 🟡 P1    | terminal-view  | 697   | Expand existing subfolder                              |
+| 🟡 P1    | interview-view | 637   | Create subfolder                                       |
+| 🟢 P2    | settings-view  | 178   | Move dialogs from components/ to dialogs/              |
+| ✅ Done  | board-view     | 685   | Already properly structured                            |
+| ✅ Done  | setup-view     | 144   | Already properly structured                            |
+| ✅ Done  | profiles-view  | 300   | Already properly structured                            |
 
 ### Immediate Dialog Reorganization
 
@@ -1448,8 +1533,8 @@ mv components/delete-all-archived-sessions-dialog.tsx → agent-view/dialogs/
 
 ```typescript
 // src/lib/platform.ts
-export const isElectron = typeof window !== "undefined" &&
-  "electronAPI" in window
+export const isElectron =
+  typeof window !== "undefined" && "electronAPI" in window;
 
 export const platform = {
   isElectron,
@@ -1457,63 +1542,69 @@ export const platform = {
   isMac: isElectron ? window.electronAPI.platform === "darwin" : false,
   isWindows: isElectron ? window.electronAPI.platform === "win32" : false,
   isLinux: isElectron ? window.electronAPI.platform === "linux" : false,
-}
+};
 ```
 
 ### API Abstraction Layer
 
 ```typescript
 // src/lib/api/file-picker.ts
-import { platform } from "../platform"
+import { platform } from "../platform";
 
 export interface FilePickerResult {
-  canceled: boolean
-  paths: string[]
+  canceled: boolean;
+  paths: string[];
 }
 
 export async function pickDirectory(): Promise<FilePickerResult> {
   if (platform.isElectron) {
-    const result = await window.dialogAPI.openDirectory()
-    return { canceled: result.canceled, paths: result.filePaths || [] }
+    const result = await window.dialogAPI.openDirectory();
+    return { canceled: result.canceled, paths: result.filePaths || [] };
   }
 
   // Web fallback using File System Access API
   try {
-    const handle = await window.showDirectoryPicker()
-    return { canceled: false, paths: [handle.name] }
+    const handle = await window.showDirectoryPicker();
+    return { canceled: false, paths: [handle.name] };
   } catch (error) {
     if ((error as Error).name === "AbortError") {
-      return { canceled: true, paths: [] }
+      return { canceled: true, paths: [] };
     }
-    throw error
+    throw error;
   }
 }
 
 export async function pickFile(options?: {
-  accept?: Record<string, string[]>
+  accept?: Record<string, string[]>;
 }): Promise<FilePickerResult> {
   if (platform.isElectron) {
     const result = await window.dialogAPI.openFile({
       filters: options?.accept
-        ? Object.entries(options.accept).map(([name, extensions]) => ({ name, extensions }))
-        : undefined
-    })
-    return { canceled: result.canceled, paths: result.filePaths || [] }
+        ? Object.entries(options.accept).map(([name, extensions]) => ({
+            name,
+            extensions,
+          }))
+        : undefined,
+    });
+    return { canceled: result.canceled, paths: result.filePaths || [] };
   }
 
   // Web fallback
   try {
     const [handle] = await window.showOpenFilePicker({
       types: options?.accept
-        ? Object.entries(options.accept).map(([description, accept]) => ({ description, accept: { "application/*": accept } }))
-        : undefined
-    })
-    return { canceled: false, paths: [handle.name] }
+        ? Object.entries(options.accept).map(([description, accept]) => ({
+            description,
+            accept: { "application/*": accept },
+          }))
+        : undefined,
+    });
+    return { canceled: false, paths: [handle.name] };
   } catch (error) {
     if ((error as Error).name === "AbortError") {
-      return { canceled: true, paths: [] }
+      return { canceled: true, paths: [] };
     }
-    throw error
+    throw error;
   }
 }
 ```
@@ -1536,6 +1627,7 @@ export async function pickFile(options?: {
 - [x] Create `index.html` for Vite entry
 
 **Deliverables**:
+
 - [x] Working Vite dev server
 - [x] TypeScript Electron main process
 - [ ] Debug console functional (deferred)
@@ -1555,6 +1647,7 @@ export async function pickFile(options?: {
 - [ ] Test Web build (needs verification)
 
 **Additional completed tasks**:
+
 - [x] Remove all "use client" directives (not needed in Vite)
 - [x] Replace all `setCurrentView()` calls with TanStack Router `navigate()`
 - [x] Rename `apps/app` to `apps/ui`
@@ -1564,6 +1657,7 @@ export async function pickFile(options?: {
 - [x] Remove PostCSS config (using `@tailwindcss/vite` plugin)
 
 **Deliverables**:
+
 - [x] All views accessible via TanStack Router
 - [x] Electron build functional
 - [ ] Web build functional (needs testing)
@@ -1583,6 +1677,7 @@ export async function pickFile(options?: {
 - [ ] Reorganize `settings-view` dialogs
 
 **Deliverables**:
+
 - All views under 500 lines
 - Consistent folder structure across all views
 - Barrel exports for all component folders
@@ -1599,6 +1694,7 @@ export async function pickFile(options?: {
 - [ ] Update imports across apps
 
 **Deliverables**:
+
 - 5 new shared packages
 - No code duplication between apps
 - Clean dependency graph
@@ -1615,6 +1711,7 @@ export async function pickFile(options?: {
 - [ ] Remove Next.js dependencies
 
 **Deliverables**:
+
 - Comprehensive test coverage
 - Performance metrics documentation
 - Updated CI/CD configuration
@@ -1626,30 +1723,30 @@ export async function pickFile(options?: {
 
 ### Developer Experience
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Dev server startup | 8-15 seconds | 1-3 seconds |
-| Hot Module Replacement | 500ms-2s | 50-100ms |
-| TypeScript in Electron | Not supported | Full support |
-| Debug tooling | Limited | Full debug console |
-| Build times | 45-90 seconds | 15-30 seconds |
+| Aspect                 | Before        | After              |
+| ---------------------- | ------------- | ------------------ |
+| Dev server startup     | 8-15 seconds  | 1-3 seconds        |
+| Hot Module Replacement | 500ms-2s      | 50-100ms           |
+| TypeScript in Electron | Not supported | Full support       |
+| Debug tooling          | Limited       | Full debug console |
+| Build times            | 45-90 seconds | 15-30 seconds      |
 
 ### Code Quality
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Electron type safety | 0% | 100% |
-| Component organization | Inconsistent | Standardized |
-| Code sharing | None | 5 shared packages |
-| Path handling | Ad-hoc | Centralized utilities |
+| Aspect                 | Before       | After                 |
+| ---------------------- | ------------ | --------------------- |
+| Electron type safety   | 0%           | 100%                  |
+| Component organization | Inconsistent | Standardized          |
+| Code sharing           | None         | 5 shared packages     |
+| Path handling          | Ad-hoc       | Centralized utilities |
 
 ### Bundle Size
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Next.js runtime | ~200KB | 0KB |
-| Framework overhead | High | Minimal |
-| Tree shaking | Limited | Full |
+| Aspect             | Before  | After   |
+| ------------------ | ------- | ------- |
+| Next.js runtime    | ~200KB  | 0KB     |
+| Framework overhead | High    | Minimal |
+| Tree shaking       | Limited | Full    |
 
 ---
 
@@ -1664,12 +1761,12 @@ export async function pickFile(options?: {
 
 ### Known Challenges
 
-| Challenge | Mitigation |
-|-----------|------------|
-| Route migration | TanStack Router has similar file-based routing |
+| Challenge             | Mitigation                                       |
+| --------------------- | ------------------------------------------------ |
+| Route migration       | TanStack Router has similar file-based routing   |
 | Environment variables | Simple search/replace (`NEXT_PUBLIC_` → `VITE_`) |
-| Build configuration | Reference electron-starter-template |
-| SSR considerations | N/A - we don't use SSR |
+| Build configuration   | Reference electron-starter-template              |
+| SSR considerations    | N/A - we don't use SSR                           |
 
 ### Testing Strategy
 
@@ -1684,13 +1781,13 @@ export async function pickFile(options?: {
 
 ```typescript
 // vite.config.mts
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
-import electron from "vite-plugin-electron"
-import renderer from "vite-plugin-electron-renderer"
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
-import tailwindcss from "@tailwindcss/vite"
-import path from "path"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import electron from "vite-plugin-electron";
+import renderer from "vite-plugin-electron-renderer";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -1741,21 +1838,22 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-})
+});
 ```
 
 ---
 
 ## Document History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | Dec 2025 | Team | Initial migration plan |
-| 1.1 | Dec 2025 | Team | Phase 1 & 2 complete. Updated checkboxes, added completed tasks, noted deferred items |
+| Version | Date     | Author | Changes                                                                               |
+| ------- | -------- | ------ | ------------------------------------------------------------------------------------- |
+| 1.0     | Dec 2025 | Team   | Initial migration plan                                                                |
+| 1.1     | Dec 2025 | Team   | Phase 1 & 2 complete. Updated checkboxes, added completed tasks, noted deferred items |
 
 ---
 
 **Next Steps**:
+
 1. ~~Review and approve this plan~~ ✅
 2. ~~Wait for `feature/worktrees` branch merge~~ ✅
 3. ~~Create migration branch~~ ✅ (refactor/frontend)

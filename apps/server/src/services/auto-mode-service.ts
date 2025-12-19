@@ -520,29 +520,28 @@ export class AutoModeService {
       }
 
       // Derive workDir from feature.branchName
-      // If no branchName, derive from feature ID: feature/{featureId}
+      // Worktrees should already be created when the feature is added/edited
       let worktreePath: string | null = null;
-      const branchName = feature.branchName || `feature/${featureId}`;
+      const branchName = feature.branchName;
 
       if (useWorktrees && branchName) {
         // Try to find existing worktree for this branch
+        // Worktree should already exist (created when feature was added/edited)
         worktreePath = await this.findExistingWorktreeForBranch(
           projectPath,
           branchName
         );
 
-        if (!worktreePath) {
-          // Create worktree for this branch
-          worktreePath = await this.setupWorktree(
-            projectPath,
-            featureId,
-            branchName
+        if (worktreePath) {
+          console.log(
+            `[AutoMode] Using worktree for branch "${branchName}": ${worktreePath}`
+          );
+        } else {
+          // Worktree doesn't exist - log warning and continue with project path
+          console.warn(
+            `[AutoMode] Worktree for branch "${branchName}" not found, using project path`
           );
         }
-
-        console.log(
-          `[AutoMode] Using worktree for branch "${branchName}": ${worktreePath}`
-        );
       }
 
       // Ensure workDir is always an absolute path for cross-platform compatibility
@@ -552,7 +551,7 @@ export class AutoModeService {
 
       // Update running feature with actual worktree info
       tempRunningFeature.worktreePath = worktreePath;
-      tempRunningFeature.branchName = branchName;
+      tempRunningFeature.branchName = branchName ?? null;
 
       // Update feature status to in_progress
       await this.updateFeatureStatus(projectPath, featureId, "in_progress");
@@ -1476,60 +1475,6 @@ Format your response as a structured markdown document.`;
       return null;
     } catch {
       return null;
-    }
-  }
-
-  private async setupWorktree(
-    projectPath: string,
-    featureId: string,
-    branchName: string
-  ): Promise<string> {
-    // First, check if git already has a worktree for this branch (anywhere)
-    const existingWorktree = await this.findExistingWorktreeForBranch(
-      projectPath,
-      branchName
-    );
-    if (existingWorktree) {
-      // Path is already resolved to absolute in findExistingWorktreeForBranch
-      console.log(
-        `[AutoMode] Found existing worktree for branch "${branchName}" at: ${existingWorktree}`
-      );
-      return existingWorktree;
-    }
-
-    // Git worktrees stay in project directory
-    const worktreesDir = path.join(projectPath, ".worktrees");
-    const worktreePath = path.join(worktreesDir, featureId);
-
-    await fs.mkdir(worktreesDir, { recursive: true });
-
-    // Check if worktree directory already exists (might not be linked to branch)
-    try {
-      await fs.access(worktreePath);
-      // Return absolute path for cross-platform compatibility
-      return path.resolve(worktreePath);
-    } catch {
-      // Create new worktree
-    }
-
-    // Create branch if it doesn't exist
-    try {
-      await execAsync(`git branch ${branchName}`, { cwd: projectPath });
-    } catch {
-      // Branch may already exist
-    }
-
-    // Create worktree
-    try {
-      await execAsync(`git worktree add "${worktreePath}" ${branchName}`, {
-        cwd: projectPath,
-      });
-      // Return absolute path for cross-platform compatibility
-      return path.resolve(worktreePath);
-    } catch (error) {
-      // Worktree creation failed, fall back to direct execution
-      console.error(`[AutoMode] Worktree creation failed:`, error);
-      return path.resolve(projectPath);
     }
   }
 

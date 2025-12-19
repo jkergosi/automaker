@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/app/public/readme_logo.png" alt="Automaker Logo" height="80" />
+  <img src="apps/ui/public/readme_logo.png" alt="Automaker Logo" height="80" />
 </p>
 
 > **[!TIP]**
@@ -88,6 +88,7 @@ The future of software development is **agentic coding**—where developers beco
 Join the **Agentic Jumpstart** to connect with other builders exploring **agentic coding** and autonomous development workflows.
 
 In the Discord, you can:
+
 - 💬 Discuss agentic coding patterns and best practices
 - 🧠 Share ideas for AI-driven development workflows
 - 🛠️ Get help setting up or extending Automaker
@@ -252,19 +253,16 @@ This project is licensed under the **Automaker License Agreement**. See [LICENSE
 **Summary of Terms:**
 
 - **Allowed:**
-
   - **Build Anything:** You can clone and use Automaker locally or in your organization to build ANY product (commercial or free).
   - **Internal Use:** You can use it internally within your company (commercial or non-profit) without restriction.
   - **Modify:** You can modify the code for internal use within your organization (commercial or non-profit).
 
 - **Restricted (The "No Monetization of the Tool" Rule):**
-
   - **No Resale:** You cannot resell Automaker itself.
   - **No SaaS:** You cannot host Automaker as a service for others.
   - **No Monetizing Mods:** You cannot distribute modified versions of Automaker for money.
 
 - **Liability:**
-
   - **Use at Own Risk:** This tool uses AI. We are **NOT** responsible if it breaks your computer, deletes your files, or generates bad code. You assume all risk.
 
 - **Contributing:**

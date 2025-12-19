@@ -82,8 +82,8 @@ export function useBoardActions({
   } = useAppStore();
   const autoMode = useAutoMode();
 
-  // Note: getOrCreateWorktreeForFeature removed - worktrees are now created server-side
-  // at execution time based on feature.branchName
+  // Worktrees are created when adding/editing features with a branch name
+  // This ensures the worktree exists before the feature starts execution
 
   const handleAddFeature = useCallback(
     async (featureData: {
@@ -100,24 +100,58 @@ export function useBoardActions({
       planningMode: PlanningMode;
       requirePlanApproval: boolean;
     }) => {
-      // Simplified: Only store branchName, no worktree creation on add
-      // Worktrees are created at execution time (when feature starts)
       // Empty string means "unassigned" (show only on primary worktree) - convert to undefined
       // Non-empty string is the actual branch name (for non-primary worktrees)
       const finalBranchName = featureData.branchName || undefined;
+
+      // If worktrees enabled and a branch is specified, create the worktree now
+      // This ensures the worktree exists before the feature starts
+      if (useWorktrees && finalBranchName && currentProject) {
+        try {
+          const api = getElectronAPI();
+          if (api?.worktree?.create) {
+            const result = await api.worktree.create(
+              currentProject.path,
+              finalBranchName
+            );
+            if (result.success) {
+              console.log(
+                `[Board] Worktree for branch "${finalBranchName}" ${
+                  result.worktree?.isNew ? "created" : "already exists"
+                }`
+              );
+              // Refresh worktree list in UI
+              onWorktreeCreated?.();
+            } else {
+              console.error(
+                `[Board] Failed to create worktree for branch "${finalBranchName}":`,
+                result.error
+              );
+              toast.error("Failed to create worktree", {
+                description: result.error || "An error occurred",
+              });
+            }
+          }
+        } catch (error) {
+          console.error("[Board] Error creating worktree:", error);
+          toast.error("Failed to create worktree", {
+            description:
+              error instanceof Error ? error.message : "An error occurred",
+          });
+        }
+      }
 
       const newFeatureData = {
         ...featureData,
         status: "backlog" as const,
         branchName: finalBranchName,
-        // No worktreePath - derived at runtime from branchName
       };
       const createdFeature = addFeature(newFeatureData);
       // Must await to ensure feature exists on server before user can drag it
       await persistFeatureCreate(createdFeature);
       saveCategory(featureData.category);
     },
-    [addFeature, persistFeatureCreate, saveCategory]
+    [addFeature, persistFeatureCreate, saveCategory, useWorktrees, currentProject, onWorktreeCreated]
   );
 
   const handleUpdateFeature = useCallback(
@@ -139,6 +173,43 @@ export function useBoardActions({
     ) => {
       const finalBranchName = updates.branchName || undefined;
 
+      // If worktrees enabled and a branch is specified, create the worktree now
+      // This ensures the worktree exists before the feature starts
+      if (useWorktrees && finalBranchName && currentProject) {
+        try {
+          const api = getElectronAPI();
+          if (api?.worktree?.create) {
+            const result = await api.worktree.create(
+              currentProject.path,
+              finalBranchName
+            );
+            if (result.success) {
+              console.log(
+                `[Board] Worktree for branch "${finalBranchName}" ${
+                  result.worktree?.isNew ? "created" : "already exists"
+                }`
+              );
+              // Refresh worktree list in UI
+              onWorktreeCreated?.();
+            } else {
+              console.error(
+                `[Board] Failed to create worktree for branch "${finalBranchName}":`,
+                result.error
+              );
+              toast.error("Failed to create worktree", {
+                description: result.error || "An error occurred",
+              });
+            }
+          }
+        } catch (error) {
+          console.error("[Board] Error creating worktree:", error);
+          toast.error("Failed to create worktree", {
+            description:
+              error instanceof Error ? error.message : "An error occurred",
+          });
+        }
+      }
+
       const finalUpdates = {
         ...updates,
         branchName: finalBranchName,
@@ -151,7 +222,7 @@ export function useBoardActions({
       }
       setEditingFeature(null);
     },
-    [updateFeature, persistFeatureUpdate, saveCategory, setEditingFeature]
+    [updateFeature, persistFeatureUpdate, saveCategory, setEditingFeature, useWorktrees, currentProject, onWorktreeCreated]
   );
 
   const handleDeleteFeature = useCallback(

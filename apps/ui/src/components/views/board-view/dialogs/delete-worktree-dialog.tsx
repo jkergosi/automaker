@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { Loader2, Trash2, AlertTriangle, FileWarning } from "lucide-react";
 import { getElectronAPI } from "@/lib/electron";
 import { toast } from "sonner";
 
@@ -29,6 +29,8 @@ interface DeleteWorktreeDialogProps {
   projectPath: string;
   worktree: WorktreeInfo | null;
   onDeleted: (deletedWorktree: WorktreeInfo, deletedBranch: boolean) => void;
+  /** Number of features assigned to this worktree's branch */
+  affectedFeatureCount?: number;
 }
 
 export function DeleteWorktreeDialog({
@@ -37,6 +39,7 @@ export function DeleteWorktreeDialog({
   projectPath,
   worktree,
   onDeleted,
+  affectedFeatureCount = 0,
 }: DeleteWorktreeDialogProps) {
   const [deleteBranch, setDeleteBranch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,6 +101,18 @@ export function DeleteWorktreeDialog({
               </code>
               ?
             </span>
+
+            {affectedFeatureCount > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-orange-500/10 border border-orange-500/20 mt-2">
+                <FileWarning className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                <span className="text-orange-500 text-sm">
+                  {affectedFeatureCount} feature{affectedFeatureCount !== 1 ? "s" : ""}{" "}
+                  {affectedFeatureCount !== 1 ? "are" : "is"} assigned to this
+                  branch. {affectedFeatureCount !== 1 ? "They" : "It"} will be
+                  unassigned and moved to the main worktree.
+                </span>
+              </div>
+            )}
 
             {worktree.hasChanges && (
               <div className="flex items-start gap-2 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/20 mt-2">
