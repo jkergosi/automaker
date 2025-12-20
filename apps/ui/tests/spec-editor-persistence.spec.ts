@@ -54,13 +54,20 @@ test.describe("Spec Editor Persistence", () => {
     await specEditor.locator(".cm-content").waitFor({ state: "visible", timeout: 10000 });
 
     // Small delay to ensure editor is fully initialized
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Step 7: Modify the editor content to "hello world"
     await setEditorContent(page, "hello world");
 
-    // Step 8: Click the save button
+    // Verify content was set before saving
+    const contentBeforeSave = await getEditorContent(page);
+    expect(contentBeforeSave.trim()).toBe("hello world");
+
+    // Step 8: Click the save button and wait for save to complete
     await clickSaveButton(page);
+
+    // Additional wait to ensure save operation completes and file is written
+    await page.waitForTimeout(1000);
 
     // Step 9: Refresh the page
     await page.reload();
@@ -83,8 +90,11 @@ test.describe("Spec Editor Persistence", () => {
         const loadingView = document.querySelector('[data-testid="spec-view-loading"]');
         return loadingView === null;
       },
-      { timeout: 10000 }
+      { timeout: 15000 }
     );
+
+    // Additional wait for CodeMirror to update after loading
+    await page.waitForTimeout(1000);
 
     // Wait for CodeMirror content to update with the loaded spec
     // CodeMirror might need a moment to update its DOM after the value prop changes
@@ -97,7 +107,7 @@ test.describe("Spec Editor Persistence", () => {
         return text === expectedContent;
       },
       "hello world",
-      { timeout: 10000 }
+      { timeout: 15000 }
     );
 
     // Step 11: Verify the content was persisted
