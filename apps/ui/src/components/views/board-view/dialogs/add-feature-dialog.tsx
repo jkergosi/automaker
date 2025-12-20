@@ -126,16 +126,25 @@ export function AddFeatureDialog({
     enhancementModel,
     defaultPlanningMode,
     defaultRequirePlanApproval,
+    defaultAIProfileId,
     useWorktrees,
   } = useAppStore();
 
   // Sync defaults when dialog opens
   useEffect(() => {
     if (open) {
+      // Find the default profile if one is set
+      const defaultProfile = defaultAIProfileId
+        ? aiProfiles.find((p) => p.id === defaultAIProfileId)
+        : null;
+
       setNewFeature((prev) => ({
         ...prev,
         skipTests: defaultSkipTests,
         branchName: defaultBranch || "",
+        // Use default profile's model/thinkingLevel if set, else fallback to defaults
+        model: defaultProfile?.model ?? "opus",
+        thinkingLevel: defaultProfile?.thinkingLevel ?? "none",
       }));
       setUseCurrentBranch(true);
       setPlanningMode(defaultPlanningMode);
@@ -147,6 +156,8 @@ export function AddFeatureDialog({
     defaultBranch,
     defaultPlanningMode,
     defaultRequirePlanApproval,
+    defaultAIProfileId,
+    aiProfiles,
   ]);
 
   const handleAdd = () => {

@@ -43,6 +43,9 @@ export function SettingsView() {
     setDefaultPlanningMode,
     defaultRequirePlanApproval,
     setDefaultRequirePlanApproval,
+    defaultAIProfileId,
+    setDefaultAIProfileId,
+    aiProfiles,
   } = useAppStore();
 
   // Convert electron Project to settings-view Project type
@@ -127,12 +130,15 @@ export function SettingsView() {
             useWorktrees={useWorktrees}
             defaultPlanningMode={defaultPlanningMode}
             defaultRequirePlanApproval={defaultRequirePlanApproval}
+            defaultAIProfileId={defaultAIProfileId}
+            aiProfiles={aiProfiles}
             onShowProfilesOnlyChange={setShowProfilesOnly}
             onDefaultSkipTestsChange={setDefaultSkipTests}
             onEnableDependencyBlockingChange={setEnableDependencyBlocking}
             onUseWorktreesChange={setUseWorktrees}
             onDefaultPlanningModeChange={setDefaultPlanningMode}
             onDefaultRequirePlanApprovalChange={setDefaultRequirePlanApproval}
+            onDefaultAIProfileIdChange={setDefaultAIProfileId}
           />
         );
       case "danger":
