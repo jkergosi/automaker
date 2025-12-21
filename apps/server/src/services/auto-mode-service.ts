@@ -1117,7 +1117,7 @@ Address the follow-up instructions above. Review the previous work and make the 
       // Check if directory exists first
       await secureFs.access(contextDir);
 
-      const files = await secureFs.readdir(contextDir) as string[];
+      const files = await secureFs.readdir(contextDir);
       // Filter for text-based context files (case-insensitive for Windows)
       const textFiles = files.filter((f) => {
         const lower = f.toLowerCase();
@@ -1582,7 +1582,7 @@ Format your response as a structured markdown document.`;
     const featuresDir = getFeaturesDir(projectPath);
 
     try {
-      const entries = await secureFs.readdir(featuresDir, { withFileTypes: true }) as any[];
+      const entries = await secureFs.readdir(featuresDir, { withFileTypes: true });
       const allFeatures: Feature[] = [];
       const pendingFeatures: Feature[] = [];
 

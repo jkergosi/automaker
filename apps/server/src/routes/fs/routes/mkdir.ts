@@ -6,7 +6,7 @@
 import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { addAllowedPath, isPathAllowed, PathNotAllowedError } from "../../../lib/security.js";
+import { isPathAllowed, PathNotAllowedError } from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 
 export function createMkdirHandler() {
@@ -31,7 +31,6 @@ export function createMkdirHandler() {
         const stats = await fs.lstat(resolvedPath);
         // Path exists - if it's a directory or symlink, consider it success
         if (stats.isDirectory() || stats.isSymbolicLink()) {
-          addAllowedPath(resolvedPath);
           res.json({ success: true });
           return;
         }
@@ -51,9 +50,6 @@ export function createMkdirHandler() {
 
       // Path doesn't exist, create it
       await fs.mkdir(resolvedPath, { recursive: true });
-
-      // Add the new directory to allowed paths for tracking
-      addAllowedPath(resolvedPath);
 
       res.json({ success: true });
     } catch (error: any) {

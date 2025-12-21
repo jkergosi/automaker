@@ -5,7 +5,6 @@
 import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { addAllowedPath } from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 import { getImagesDir } from "../../../lib/automaker-paths.js";
 
@@ -44,9 +43,6 @@ export function createSaveImageHandler() {
 
       // Write file
       await fs.writeFile(filePath, buffer);
-
-      // Add automaker directory to allowed paths
-      addAllowedPath(imagesDir);
 
       // Return the absolute path
       res.json({ success: true, path: filePath });

@@ -7,6 +7,7 @@
  */
 
 import fs from "fs/promises";
+import type { Dirent } from "fs";
 import path from "path";
 import { validatePath } from "./security.js";
 
@@ -41,7 +42,7 @@ export async function writeFile(
   encoding?: BufferEncoding
 ): Promise<void> {
   const validatedPath = validatePath(filePath);
-  return fs.writeFile(validatedPath, data, encoding as any);
+  return fs.writeFile(validatedPath, data, encoding);
 }
 
 /**
@@ -60,10 +61,21 @@ export async function mkdir(
  */
 export async function readdir(
   dirPath: string,
+  options?: { withFileTypes?: false; encoding?: BufferEncoding }
+): Promise<string[]>;
+export async function readdir(
+  dirPath: string,
+  options: { withFileTypes: true; encoding?: BufferEncoding }
+): Promise<Dirent[]>;
+export async function readdir(
+  dirPath: string,
   options?: { withFileTypes?: boolean; encoding?: BufferEncoding }
-): Promise<string[] | any[]> {
+): Promise<string[] | Dirent[]> {
   const validatedPath = validatePath(dirPath);
-  return fs.readdir(validatedPath, options as any);
+  if (options?.withFileTypes === true) {
+    return fs.readdir(validatedPath, { withFileTypes: true });
+  }
+  return fs.readdir(validatedPath);
 }
 
 /**
@@ -115,7 +127,7 @@ export async function appendFile(
   encoding?: BufferEncoding
 ): Promise<void> {
   const validatedPath = validatePath(filePath);
-  return fs.appendFile(validatedPath, data, encoding as any);
+  return fs.appendFile(validatedPath, data, encoding);
 }
 
 /**

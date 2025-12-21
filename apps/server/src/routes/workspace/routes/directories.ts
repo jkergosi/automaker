@@ -5,7 +5,7 @@
 import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { addAllowedPath, getAllowedRootDirectory } from "../../../lib/security.js";
+import { getAllowedRootDirectory } from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 
 export function createDirectoriesHandler() {
@@ -34,9 +34,6 @@ export function createDirectoriesHandler() {
         return;
       }
 
-      // Add workspace dir to allowed paths
-      addAllowedPath(resolvedWorkspaceDir);
-
       // Read directory contents
       const entries = await fs.readdir(resolvedWorkspaceDir, { withFileTypes: true });
 
@@ -48,9 +45,6 @@ export function createDirectoriesHandler() {
           path: path.join(resolvedWorkspaceDir, entry.name),
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
-
-      // Add each directory to allowed paths
-      directories.forEach((dir) => addAllowedPath(dir.path));
 
       res.json({
         success: true,

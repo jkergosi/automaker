@@ -5,7 +5,6 @@
 import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { addAllowedPath } from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 import { getBoardDir } from "../../../lib/automaker-paths.js";
 
@@ -42,9 +41,6 @@ export function createSaveBoardBackgroundHandler() {
 
       // Write file
       await fs.writeFile(filePath, buffer);
-
-      // Add board directory to allowed paths
-      addAllowedPath(boardDir);
 
       // Return the absolute path
       res.json({ success: true, path: filePath });

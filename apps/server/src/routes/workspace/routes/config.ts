@@ -6,7 +6,6 @@ import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
 import {
-  addAllowedPath,
   getAllowedRootDirectory,
   getDataDirectory,
 } from "../../../lib/security.js";
@@ -40,9 +39,6 @@ export function createConfigHandler() {
           });
           return;
         }
-
-        // Add workspace dir to allowed paths
-        addAllowedPath(resolvedWorkspaceDir);
 
         res.json({
           success: true,

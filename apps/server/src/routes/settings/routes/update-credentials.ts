@@ -1,11 +1,11 @@
 /**
  * PUT /api/settings/credentials - Update API credentials
  *
- * Updates API keys for Anthropic, Google, or OpenAI. Partial updates supported.
+ * Updates API keys for Anthropic. Partial updates supported.
  * Returns masked credentials for verification without exposing full keys.
  *
  * Request body: `Partial<Credentials>` (usually just apiKeys)
- * Response: `{ "success": true, "credentials": { anthropic, google, openai } }`
+ * Response: `{ "success": true, "credentials": { anthropic } }`
  */
 
 import type { Request, Response } from "express";

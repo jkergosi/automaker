@@ -183,8 +183,6 @@ describe("settings-service.ts", () => {
         ...DEFAULT_CREDENTIALS,
         apiKeys: {
           anthropic: "sk-test-key",
-          google: "",
-          openai: "",
         },
       };
       const credentialsPath = path.join(testDataDir, "credentials.json");
@@ -206,8 +204,6 @@ describe("settings-service.ts", () => {
 
       const credentials = await settingsService.getCredentials();
       expect(credentials.apiKeys.anthropic).toBe("sk-test");
-      expect(credentials.apiKeys.google).toBe("");
-      expect(credentials.apiKeys.openai).toBe("");
     });
   });
 
@@ -216,8 +212,6 @@ describe("settings-service.ts", () => {
       const updates: Partial<Credentials> = {
         apiKeys: {
           anthropic: "sk-test-key",
-          google: "",
-          openai: "",
         },
       };
 
@@ -237,8 +231,6 @@ describe("settings-service.ts", () => {
         ...DEFAULT_CREDENTIALS,
         apiKeys: {
           anthropic: "sk-initial",
-          google: "google-key",
-          openai: "",
         },
       };
       const credentialsPath = path.join(testDataDir, "credentials.json");
@@ -253,7 +245,6 @@ describe("settings-service.ts", () => {
       const updated = await settingsService.updateCredentials(updates);
 
       expect(updated.apiKeys.anthropic).toBe("sk-updated");
-      expect(updated.apiKeys.google).toBe("google-key"); // Preserved
     });
 
     it("should deep merge api keys", async () => {
@@ -261,8 +252,6 @@ describe("settings-service.ts", () => {
         ...DEFAULT_CREDENTIALS,
         apiKeys: {
           anthropic: "sk-anthropic",
-          google: "google-key",
-          openai: "openai-key",
         },
       };
       const credentialsPath = path.join(testDataDir, "credentials.json");
@@ -270,15 +259,13 @@ describe("settings-service.ts", () => {
 
       const updates: Partial<Credentials> = {
         apiKeys: {
-          openai: "new-openai-key",
+          anthropic: "sk-updated-anthropic",
         },
       };
 
       const updated = await settingsService.updateCredentials(updates);
 
-      expect(updated.apiKeys.anthropic).toBe("sk-anthropic");
-      expect(updated.apiKeys.google).toBe("google-key");
-      expect(updated.apiKeys.openai).toBe("new-openai-key");
+      expect(updated.apiKeys.anthropic).toBe("sk-updated-anthropic");
     });
   });
 
@@ -287,34 +274,24 @@ describe("settings-service.ts", () => {
       const masked = await settingsService.getMaskedCredentials();
       expect(masked.anthropic.configured).toBe(false);
       expect(masked.anthropic.masked).toBe("");
-      expect(masked.google.configured).toBe(false);
-      expect(masked.openai.configured).toBe(false);
     });
 
     it("should mask keys correctly", async () => {
       await settingsService.updateCredentials({
         apiKeys: {
           anthropic: "sk-ant-api03-1234567890abcdef",
-          google: "AIzaSy1234567890abcdef",
-          openai: "sk-1234567890abcdef",
         },
       });
 
       const masked = await settingsService.getMaskedCredentials();
       expect(masked.anthropic.configured).toBe(true);
       expect(masked.anthropic.masked).toBe("sk-a...cdef");
-      expect(masked.google.configured).toBe(true);
-      expect(masked.google.masked).toBe("AIza...cdef");
-      expect(masked.openai.configured).toBe(true);
-      expect(masked.openai.masked).toBe("sk-1...cdef");
     });
 
     it("should handle short keys", async () => {
       await settingsService.updateCredentials({
         apiKeys: {
           anthropic: "short",
-          google: "",
-          openai: "",
         },
       });
 
@@ -332,7 +309,7 @@ describe("settings-service.ts", () => {
 
     it("should return true when credentials file exists", async () => {
       await settingsService.updateCredentials({
-        apiKeys: { anthropic: "test", google: "", openai: "" },
+        apiKeys: { anthropic: "test" },
       });
       const exists = await settingsService.hasCredentials();
       expect(exists).toBe(true);
@@ -508,8 +485,6 @@ describe("settings-service.ts", () => {
           state: {
             apiKeys: {
               anthropic: "sk-test-key",
-              google: "google-key",
-              openai: "openai-key",
             },
           },
         }),
@@ -522,8 +497,6 @@ describe("settings-service.ts", () => {
 
       const credentials = await settingsService.getCredentials();
       expect(credentials.apiKeys.anthropic).toBe("sk-test-key");
-      expect(credentials.apiKeys.google).toBe("google-key");
-      expect(credentials.apiKeys.openai).toBe("openai-key");
     });
 
     it("should migrate project settings from localStorage data", async () => {

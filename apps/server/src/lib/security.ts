@@ -23,9 +23,6 @@ let allowedRootDirectory: string | null = null;
 // Data directory - always allowed for settings/credentials
 let dataDirectory: string | null = null;
 
-// Allowed paths set - stores ALLOWED_ROOT_DIRECTORY and DATA_DIR
-const allowedPaths = new Set<string>();
-
 /**
  * Initialize security settings from environment variables
  * - ALLOWED_ROOT_DIRECTORY: main security boundary
@@ -36,7 +33,6 @@ export function initAllowedPaths(): void {
   const rootDir = process.env.ALLOWED_ROOT_DIRECTORY;
   if (rootDir) {
     allowedRootDirectory = path.resolve(rootDir);
-    allowedPaths.add(allowedRootDirectory);
     console.log(
       `[Security] ✓ ALLOWED_ROOT_DIRECTORY configured: ${allowedRootDirectory}`
     );
@@ -50,17 +46,8 @@ export function initAllowedPaths(): void {
   const dataDir = process.env.DATA_DIR;
   if (dataDir) {
     dataDirectory = path.resolve(dataDir);
-    allowedPaths.add(dataDirectory);
     console.log(`[Security] ✓ DATA_DIR configured: ${dataDirectory}`);
   }
-}
-
-/**
- * Add a path to the allowed list
- * Used when dynamically creating new directories within the allowed root
- */
-export function addAllowedPath(filePath: string): void {
-  allowedPaths.add(path.resolve(filePath));
 }
 
 /**
@@ -145,5 +132,12 @@ export function getDataDirectory(): string | null {
  * Get list of allowed paths (for debugging)
  */
 export function getAllowedPaths(): string[] {
-  return Array.from(allowedPaths);
+  const paths: string[] = [];
+  if (allowedRootDirectory) {
+    paths.push(allowedRootDirectory);
+  }
+  if (dataDirectory) {
+    paths.push(dataDirectory);
+  }
+  return paths;
 }

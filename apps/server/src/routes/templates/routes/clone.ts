@@ -6,7 +6,7 @@ import type { Request, Response } from "express";
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs/promises";
-import { addAllowedPath, isPathAllowed, PathNotAllowedError } from "../../../lib/security.js";
+import { isPathAllowed, PathNotAllowedError } from "../../../lib/security.js";
 import { logger, getErrorMessage, logError } from "../common.js";
 
 export function createCloneHandler() {
@@ -203,9 +203,6 @@ export function createCloneHandler() {
           resolve();
         });
       });
-
-      // Add to allowed paths
-      addAllowedPath(projectPath);
 
       logger.info(`[Templates] Successfully cloned template to ${projectPath}`);
 

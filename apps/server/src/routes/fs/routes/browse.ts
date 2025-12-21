@@ -6,7 +6,11 @@ import type { Request, Response } from "express";
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
-import { isPathAllowed, PathNotAllowedError } from "../../../lib/security.js";
+import {
+  getAllowedRootDirectory,
+  isPathAllowed,
+  PathNotAllowedError,
+} from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 
 export function createBrowseHandler() {
@@ -14,8 +18,9 @@ export function createBrowseHandler() {
     try {
       const { dirPath } = req.body as { dirPath?: string };
 
-      // Default to home directory if no path provided
-      const targetPath = dirPath ? path.resolve(dirPath) : os.homedir();
+      // Default to ALLOWED_ROOT_DIRECTORY if set, otherwise home directory
+      const defaultPath = getAllowedRootDirectory() || os.homedir();
+      const targetPath = dirPath ? path.resolve(dirPath) : defaultPath;
 
       // Validate that the path is allowed
       if (!isPathAllowed(targetPath)) {

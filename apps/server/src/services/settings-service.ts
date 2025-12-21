@@ -269,8 +269,6 @@ export class SettingsService {
    */
   async getMaskedCredentials(): Promise<{
     anthropic: { configured: boolean; masked: string };
-    google: { configured: boolean; masked: string };
-    openai: { configured: boolean; masked: string };
   }> {
     const credentials = await this.getCredentials();
 
@@ -283,14 +281,6 @@ export class SettingsService {
       anthropic: {
         configured: !!credentials.apiKeys.anthropic,
         masked: maskKey(credentials.apiKeys.anthropic),
-      },
-      google: {
-        configured: !!credentials.apiKeys.google,
-        masked: maskKey(credentials.apiKeys.google),
-      },
-      openai: {
-        configured: !!credentials.apiKeys.openai,
-        masked: maskKey(credentials.apiKeys.openai),
       },
     };
   }
@@ -505,14 +495,10 @@ export class SettingsService {
       if (appState.apiKeys) {
         const apiKeys = appState.apiKeys as {
           anthropic?: string;
-          google?: string;
-          openai?: string;
         };
         await this.updateCredentials({
           apiKeys: {
             anthropic: apiKeys.anthropic || "",
-            google: apiKeys.google || "",
-            openai: apiKeys.openai || "",
           },
         });
         migratedCredentials = true;

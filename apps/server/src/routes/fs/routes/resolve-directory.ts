@@ -5,7 +5,6 @@
 import type { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { addAllowedPath } from "../../../lib/security.js";
 import { getErrorMessage, logError } from "../common.js";
 
 export function createResolveDirectoryHandler() {
@@ -30,7 +29,6 @@ export function createResolveDirectoryHandler() {
           const resolvedPath = path.resolve(directoryName);
           const stats = await fs.stat(resolvedPath);
           if (stats.isDirectory()) {
-            addAllowedPath(resolvedPath);
             res.json({
               success: true,
               path: resolvedPath,
@@ -102,7 +100,6 @@ export function createResolveDirectoryHandler() {
             }
 
             // Found matching directory
-            addAllowedPath(candidatePath);
             res.json({
               success: true,
               path: candidatePath,

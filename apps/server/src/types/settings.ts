@@ -266,10 +266,6 @@ export interface Credentials {
   apiKeys: {
     /** Anthropic Claude API key */
     anthropic: string;
-    /** Google API key (for embeddings or other services) */
-    google: string;
-    /** OpenAI API key (for compatibility or alternative providers) */
-    openai: string;
   };
 }
 
@@ -410,8 +406,6 @@ export const DEFAULT_CREDENTIALS: Credentials = {
   version: 1,
   apiKeys: {
     anthropic: "",
-    google: "",
-    openai: "",
   },
 };
 

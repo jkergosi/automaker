@@ -22,18 +22,19 @@ export function createAutoModeRoutes(autoModeService: AutoModeService): Router {
   const router = Router();
 
   router.post("/stop-feature", createStopFeatureHandler(autoModeService));
-  router.post("/status", createStatusHandler(autoModeService));
+  router.post("/status", validatePathParams("projectPath?"), createStatusHandler(autoModeService));
   router.post("/run-feature", validatePathParams("projectPath"), createRunFeatureHandler(autoModeService));
-  router.post("/verify-feature", createVerifyFeatureHandler(autoModeService));
-  router.post("/resume-feature", createResumeFeatureHandler(autoModeService));
-  router.post("/context-exists", createContextExistsHandler(autoModeService));
+  router.post("/verify-feature", validatePathParams("projectPath"), createVerifyFeatureHandler(autoModeService));
+  router.post("/resume-feature", validatePathParams("projectPath"), createResumeFeatureHandler(autoModeService));
+  router.post("/context-exists", validatePathParams("projectPath"), createContextExistsHandler(autoModeService));
   router.post("/analyze-project", validatePathParams("projectPath"), createAnalyzeProjectHandler(autoModeService));
   router.post(
     "/follow-up-feature",
+    validatePathParams("projectPath", "imagePaths[]"),
     createFollowUpFeatureHandler(autoModeService)
   );
   router.post("/commit-feature", validatePathParams("projectPath", "worktreePath?"), createCommitFeatureHandler(autoModeService));
-  router.post("/approve-plan", createApprovePlanHandler(autoModeService));
+  router.post("/approve-plan", validatePathParams("projectPath"), createApprovePlanHandler(autoModeService));
 
   return router;
 }

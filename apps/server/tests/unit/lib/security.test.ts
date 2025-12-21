@@ -51,37 +51,6 @@ describe("security.ts", () => {
     });
   });
 
-  describe("addAllowedPath", () => {
-    it("should add path to allowed list", async () => {
-      delete process.env.ALLOWED_ROOT_DIRECTORY;
-      process.env.DATA_DIR = "";
-
-      const { initAllowedPaths, addAllowedPath, getAllowedPaths } =
-        await import("@/lib/security.js");
-      initAllowedPaths();
-
-      addAllowedPath("/new/path");
-
-      const allowed = getAllowedPaths();
-      expect(allowed).toContain(path.resolve("/new/path"));
-    });
-
-    it("should resolve relative paths before adding", async () => {
-      delete process.env.ALLOWED_ROOT_DIRECTORY;
-      process.env.DATA_DIR = "";
-
-      const { initAllowedPaths, addAllowedPath, getAllowedPaths } =
-        await import("@/lib/security.js");
-      initAllowedPaths();
-
-      addAllowedPath("./relative/path");
-
-      const allowed = getAllowedPaths();
-      const cwd = process.cwd();
-      expect(allowed).toContain(path.resolve(cwd, "./relative/path"));
-    });
-  });
-
   describe("isPathAllowed", () => {
     it("should allow paths within ALLOWED_ROOT_DIRECTORY", async () => {
       process.env.ALLOWED_ROOT_DIRECTORY = "/allowed/project";
