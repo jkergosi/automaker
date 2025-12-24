@@ -59,8 +59,9 @@ export function useApiKeyManagement() {
               hasGoogleKey: status.hasGoogleKey,
             });
           }
-        } catch (error) {
-          console.error('Failed to check API key status:', error);
+        } catch {
+          // Silently handle API key status check failures to avoid exposing
+          // sensitive error details in the console
         }
       }
     };
@@ -98,26 +99,29 @@ export function useApiKeyManagement() {
   };
 
   // Test Google/Gemini connection
-  // TODO: Add backend endpoint for Gemini API key verification
+  // NOTE: Full API key validation requires a backend call to verify the key
+  // against Google's API. The current client-side validation only checks
+  // basic format requirements and cannot confirm the key is actually valid.
   const handleTestGeminiConnection = async () => {
     setTestingGeminiConnection(true);
     setGeminiTestResult(null);
 
-    // Basic validation - check key format
+    // Basic client-side format validation only
+    // This does NOT verify the key is valid with Google's API
     if (!googleKey || googleKey.trim().length < 10) {
       setGeminiTestResult({
         success: false,
-        message: 'Please enter a valid API key.',
+        message: 'Please enter an API key with at least 10 characters.',
       });
       setTestingGeminiConnection(false);
       return;
     }
 
-    // For now, just validate the key format (starts with expected prefix)
-    // Full verification requires a backend endpoint
+    // Client-side validation cannot confirm key validity.
+    // The key will be verified when first used with the Gemini API.
     setGeminiTestResult({
       success: true,
-      message: 'API key saved. Connection test not yet available.',
+      message: 'API key format accepted. Key will be validated on first use with Gemini API.',
     });
     setTestingGeminiConnection(false);
   };

@@ -940,7 +940,12 @@ export function TerminalPanel({
     if (!terminal) return;
 
     const connect = () => {
-      // Build WebSocket URL with token
+      // Build WebSocket URL with token in query string
+      // Note: WebSocket API in browsers does not support custom headers during the upgrade handshake,
+      // so we must pass the token via query string. This is acceptable because:
+      // 1. WebSocket URLs are not exposed in HTTP Referer headers
+      // 2. The connection is upgraded to a secure WebSocket protocol immediately
+      // 3. Server-side logging should not log query parameters containing tokens
       let url = `${wsUrl}/api/terminal/ws?sessionId=${sessionId}`;
       if (authToken) {
         url += `&token=${encodeURIComponent(authToken)}`;

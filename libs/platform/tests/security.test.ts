@@ -95,27 +95,57 @@ describe('security.ts', () => {
       expect(isPathAllowed('/app/data/credentials.json')).toBe(true);
     });
 
-    it('should allow all paths when no restrictions configured', async () => {
+    it('should deny all paths in strict mode when no restrictions configured', async () => {
       delete process.env.ALLOWED_ROOT_DIRECTORY;
       delete process.env.DATA_DIR;
+      delete process.env.SECURITY_MODE; // Default to strict
 
       const { initAllowedPaths, isPathAllowed } = await import('../src/security');
       initAllowedPaths();
 
+      // In strict mode, paths are denied when no ALLOWED_ROOT_DIRECTORY is set
+      expect(isPathAllowed('/any/path')).toBe(false);
+      expect(isPathAllowed('/etc/passwd')).toBe(false);
+    });
+
+    it('should allow all paths in permissive mode when no restrictions configured', async () => {
+      delete process.env.ALLOWED_ROOT_DIRECTORY;
+      delete process.env.DATA_DIR;
+      process.env.SECURITY_MODE = 'permissive';
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      // In permissive mode, all paths are allowed when no restrictions configured
       expect(isPathAllowed('/any/path')).toBe(true);
       expect(isPathAllowed('/etc/passwd')).toBe(true);
     });
 
-    it('should allow all paths when only DATA_DIR is configured', async () => {
+    it('should deny non-DATA_DIR paths in strict mode when only DATA_DIR is configured', async () => {
       delete process.env.ALLOWED_ROOT_DIRECTORY;
       process.env.DATA_DIR = '/data';
+      delete process.env.SECURITY_MODE; // Default to strict
 
       const { initAllowedPaths, isPathAllowed } = await import('../src/security');
       initAllowedPaths();
 
       // DATA_DIR should be allowed
       expect(isPathAllowed('/data/file.txt')).toBe(true);
-      // And all other paths should be allowed since no ALLOWED_ROOT_DIRECTORY restriction
+      // Other paths should be denied in strict mode
+      expect(isPathAllowed('/any/path')).toBe(false);
+    });
+
+    it('should allow all paths in permissive mode when only DATA_DIR is configured', async () => {
+      delete process.env.ALLOWED_ROOT_DIRECTORY;
+      process.env.DATA_DIR = '/data';
+      process.env.SECURITY_MODE = 'permissive';
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      // DATA_DIR should be allowed
+      expect(isPathAllowed('/data/file.txt')).toBe(true);
+      // Other paths should also be allowed in permissive mode
       expect(isPathAllowed('/any/path')).toBe(true);
     });
   });
@@ -155,13 +185,28 @@ describe('security.ts', () => {
       expect(result).toBe(path.resolve(cwd, './file.txt'));
     });
 
-    it('should not throw when no restrictions configured', async () => {
+    it('should throw in strict mode when no restrictions configured', async () => {
       delete process.env.ALLOWED_ROOT_DIRECTORY;
       delete process.env.DATA_DIR;
+      delete process.env.SECURITY_MODE; // Default to strict
+
+      const { initAllowedPaths, validatePath, PathNotAllowedError } =
+        await import('../src/security');
+      initAllowedPaths();
+
+      // In strict mode, paths are denied when no ALLOWED_ROOT_DIRECTORY is set
+      expect(() => validatePath('/any/path')).toThrow(PathNotAllowedError);
+    });
+
+    it('should not throw in permissive mode when no restrictions configured', async () => {
+      delete process.env.ALLOWED_ROOT_DIRECTORY;
+      delete process.env.DATA_DIR;
+      process.env.SECURITY_MODE = 'permissive';
 
       const { initAllowedPaths, validatePath } = await import('../src/security');
       initAllowedPaths();
 
+      // In permissive mode, all paths are allowed when no restrictions configured
       expect(() => validatePath('/any/path')).not.toThrow();
     });
   });
@@ -209,6 +254,110 @@ describe('security.ts', () => {
       initAllowedPaths();
 
       expect(getAllowedRootDirectory()).toBeNull();
+    });
+  });
+
+  describe('path traversal attack prevention', () => {
+    it('should block basic path traversal with ../', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      expect(isPathAllowed('/allowed/../etc/passwd')).toBe(false);
+      expect(isPathAllowed('/allowed/subdir/../../etc/passwd')).toBe(false);
+    });
+
+    it('should block path traversal with multiple ../ sequences', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed/deep/nested';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      expect(isPathAllowed('/allowed/deep/nested/../../../etc/passwd')).toBe(false);
+      expect(isPathAllowed('/allowed/deep/nested/../../../../root')).toBe(false);
+    });
+
+    it('should block standalone .. in path components', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      expect(isPathAllowed('/allowed/foo/..bar')).toBe(true); // This is a valid filename, not traversal
+      expect(isPathAllowed('/allowed/foo/../bar')).toBe(true); // Resolves within allowed
+      expect(isPathAllowed('/allowed/../notallowed')).toBe(false);
+    });
+
+    it('should handle edge case of path ending with /..', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed/subdir';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      expect(isPathAllowed('/allowed/subdir/..')).toBe(false);
+      expect(isPathAllowed('/allowed/subdir/../..')).toBe(false);
+    });
+
+    it('should properly resolve and block complex traversal attempts', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/home/user/projects';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      // Attempt to escape via complex path
+      expect(isPathAllowed('/home/user/projects/app/../../../etc/shadow')).toBe(false);
+
+      // Valid path that uses .. but stays within allowed
+      expect(isPathAllowed('/home/user/projects/app/../lib/file.ts')).toBe(true);
+    });
+
+    it('should validate path throws on traversal attacks', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, validatePath, PathNotAllowedError } =
+        await import('../src/security');
+      initAllowedPaths();
+
+      expect(() => validatePath('/allowed/../etc/passwd')).toThrow(PathNotAllowedError);
+      expect(() => validatePath('/allowed/../../root/.ssh/id_rsa')).toThrow(PathNotAllowedError);
+    });
+
+    it('should handle paths with mixed separators (cross-platform)', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      // Node's path.resolve handles these correctly on each platform
+      const maliciousPath = path.resolve('/allowed', '..', 'etc', 'passwd');
+      expect(isPathAllowed(maliciousPath)).toBe(false);
+    });
+
+    it('should correctly identify paths at the boundary', async () => {
+      process.env.ALLOWED_ROOT_DIRECTORY = '/allowed';
+      delete process.env.DATA_DIR;
+
+      const { initAllowedPaths, isPathAllowed } = await import('../src/security');
+      initAllowedPaths();
+
+      // The allowed directory itself should be allowed
+      expect(isPathAllowed('/allowed')).toBe(true);
+      expect(isPathAllowed('/allowed/')).toBe(true);
+
+      // Parent of allowed should not be allowed
+      expect(isPathAllowed('/')).toBe(false);
+
+      // Sibling directories should not be allowed
+      expect(isPathAllowed('/allowed2')).toBe(false);
+      expect(isPathAllowed('/allowedextra')).toBe(false);
     });
   });
 

@@ -8,6 +8,29 @@ import type { Request, Response, NextFunction } from 'express';
 import { validatePath, PathNotAllowedError } from '@automaker/platform';
 
 /**
+ * Custom error for invalid path type
+ */
+class InvalidPathTypeError extends Error {
+  constructor(paramName: string, expectedType: string, actualType: string) {
+    super(`Invalid type for '${paramName}': expected ${expectedType}, got ${actualType}`);
+    this.name = 'InvalidPathTypeError';
+  }
+}
+
+/**
+ * Validates that a value is a non-empty string suitable for path validation
+ *
+ * @param value - The value to check
+ * @param paramName - The parameter name for error messages
+ * @throws InvalidPathTypeError if value is not a valid string
+ */
+function assertValidPathString(value: unknown, paramName: string): asserts value is string {
+  if (typeof value !== 'string') {
+    throw new InvalidPathTypeError(paramName, 'string', typeof value);
+  }
+}
+
+/**
  * Creates a middleware that validates specified path parameters in req.body
  * @param paramNames - Names of parameters to validate (e.g., 'projectPath', 'worktreePath')
  * @example
@@ -27,7 +50,8 @@ export function validatePathParams(...paramNames: string[]) {
         if (paramName.endsWith('?')) {
           const actualName = paramName.slice(0, -1);
           const value = req.body[actualName];
-          if (value) {
+          if (value !== undefined && value !== null) {
+            assertValidPathString(value, actualName);
             validatePath(value);
           }
           continue;
@@ -37,17 +61,30 @@ export function validatePathParams(...paramNames: string[]) {
         if (paramName.endsWith('[]')) {
           const actualName = paramName.slice(0, -2);
           const values = req.body[actualName];
-          if (Array.isArray(values) && values.length > 0) {
-            for (const value of values) {
-              validatePath(value);
-            }
+
+          // Skip if not provided or empty
+          if (values === undefined || values === null) {
+            continue;
+          }
+
+          // Validate that it's actually an array
+          if (!Array.isArray(values)) {
+            throw new InvalidPathTypeError(actualName, 'array', typeof values);
+          }
+
+          // Validate each element in the array
+          for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+            assertValidPathString(value, `${actualName}[${i}]`);
+            validatePath(value);
           }
           continue;
         }
 
         // Handle regular parameters
         const value = req.body[paramName];
-        if (value) {
+        if (value !== undefined && value !== null) {
+          assertValidPathString(value, paramName);
           validatePath(value);
         }
       }
@@ -56,6 +93,14 @@ export function validatePathParams(...paramNames: string[]) {
     } catch (error) {
       if (error instanceof PathNotAllowedError) {
         res.status(403).json({
+          success: false,
+          error: error.message,
+        });
+        return;
+      }
+
+      if (error instanceof InvalidPathTypeError) {
+        res.status(400).json({
           success: false,
           error: error.message,
         });

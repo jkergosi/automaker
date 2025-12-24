@@ -66,6 +66,18 @@ export function cleanupExpiredTokens(): void {
 setInterval(cleanupExpiredTokens, 5 * 60 * 1000);
 
 /**
+ * Extract Bearer token from Authorization header
+ * Returns undefined if header is missing or malformed
+ */
+export function extractBearerToken(req: Request): string | undefined {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return undefined;
+  }
+  return authHeader.slice(7); // Remove 'Bearer ' prefix
+}
+
+/**
  * Validate a terminal session token
  */
 export function validateTerminalToken(token: string | undefined): boolean {
@@ -116,8 +128,9 @@ export function terminalAuthMiddleware(req: Request, res: Response, next: NextFu
     return;
   }
 
-  // Check for session token
-  const token = (req.headers['x-terminal-token'] as string) || (req.query.token as string);
+  // Extract token from Authorization header only (Bearer token format)
+  // Query string tokens are not supported due to security risks (URL logging, referrer leakage)
+  const token = extractBearerToken(req);
 
   if (!validateTerminalToken(token)) {
     res.status(401).json({

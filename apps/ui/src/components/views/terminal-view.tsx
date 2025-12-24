@@ -296,7 +296,7 @@ export function TerminalView() {
 
     const headers: Record<string, string> = {};
     if (terminalState.authToken) {
-      headers['X-Terminal-Token'] = terminalState.authToken;
+      headers['Authorization'] = `Bearer ${terminalState.authToken}`;
     }
 
     console.log(`[Terminal] Killing ${sessionIds.length} sessions on server`);
@@ -459,7 +459,7 @@ export function TerminalView() {
     try {
       const headers: Record<string, string> = {};
       if (terminalState.authToken) {
-        headers['X-Terminal-Token'] = terminalState.authToken;
+        headers['Authorization'] = `Bearer ${terminalState.authToken}`;
       }
       const response = await fetch(`${serverUrl}/api/terminal/settings`, { headers });
       const data = await response.json();
@@ -488,7 +488,7 @@ export function TerminalView() {
         'Content-Type': 'application/json',
       };
       if (terminalState.authToken) {
-        headers['X-Terminal-Token'] = terminalState.authToken;
+        headers['Authorization'] = `Bearer ${terminalState.authToken}`;
       }
 
       // Try to use the bulk delete endpoint if available, otherwise delete individually
@@ -501,7 +501,7 @@ export function TerminalView() {
           const xhr = new XMLHttpRequest();
           xhr.open('DELETE', url, false); // synchronous
           if (terminalState.authToken) {
-            xhr.setRequestHeader('X-Terminal-Token', terminalState.authToken);
+            xhr.setRequestHeader('Authorization', `Bearer ${terminalState.authToken}`);
           }
           xhr.send();
         } catch {
@@ -595,7 +595,7 @@ export function TerminalView() {
         // Get fresh auth token from store
         const authToken = useAppStore.getState().terminalState.authToken;
         if (authToken) {
-          headers['X-Terminal-Token'] = authToken;
+          headers['Authorization'] = `Bearer ${authToken}`;
         }
 
         // Helper to check if a session still exists on server
@@ -833,7 +833,7 @@ export function TerminalView() {
         'Content-Type': 'application/json',
       };
       if (terminalState.authToken) {
-        headers['X-Terminal-Token'] = terminalState.authToken;
+        headers['Authorization'] = `Bearer ${terminalState.authToken}`;
       }
 
       const response = await fetch(`${serverUrl}/api/terminal/sessions`, {
@@ -892,7 +892,7 @@ export function TerminalView() {
         'Content-Type': 'application/json',
       };
       if (terminalState.authToken) {
-        headers['X-Terminal-Token'] = terminalState.authToken;
+        headers['Authorization'] = `Bearer ${terminalState.authToken}`;
       }
 
       const response = await fetch(`${serverUrl}/api/terminal/sessions`, {
@@ -952,7 +952,7 @@ export function TerminalView() {
     try {
       const headers: Record<string, string> = {};
       if (terminalState.authToken) {
-        headers['X-Terminal-Token'] = terminalState.authToken;
+        headers['Authorization'] = `Bearer ${terminalState.authToken}`;
       }
 
       const response = await fetch(`${serverUrl}/api/terminal/sessions/${sessionId}`, {
@@ -998,7 +998,7 @@ export function TerminalView() {
     // Kill all sessions on the server
     const headers: Record<string, string> = {};
     if (terminalState.authToken) {
-      headers['X-Terminal-Token'] = terminalState.authToken;
+      headers['Authorization'] = `Bearer ${terminalState.authToken}`;
     }
 
     await Promise.all(

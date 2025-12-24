@@ -3,7 +3,7 @@
  */
 
 import type { Request, Response } from 'express';
-import { setApiKey, persistApiKeyToEnv, getErrorMessage, logError } from '../common.js';
+import { setApiKey, persistApiKeyToEnv, logError } from '../common.js';
 import { createLogger } from '@automaker/utils';
 
 const logger = createLogger('Setup');
@@ -30,9 +30,10 @@ export function createStoreApiKeyHandler() {
         await persistApiKeyToEnv('ANTHROPIC_API_KEY', apiKey);
         logger.info('[Setup] Stored API key as ANTHROPIC_API_KEY');
       } else {
+        logger.warn(`[Setup] Unsupported provider requested: ${provider}`);
         res.status(400).json({
           success: false,
-          error: `Unsupported provider: ${provider}. Only anthropic is supported.`,
+          error: 'Unsupported provider. Only anthropic is supported.',
         });
         return;
       }
@@ -40,7 +41,7 @@ export function createStoreApiKeyHandler() {
       res.json({ success: true });
     } catch (error) {
       logError(error, 'Store API key failed');
-      res.status(500).json({ success: false, error: getErrorMessage(error) });
+      res.status(500).json({ success: false, error: 'Failed to store API key' });
     }
   };
 }

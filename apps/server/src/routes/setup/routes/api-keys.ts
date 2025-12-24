@@ -3,7 +3,7 @@
  */
 
 import type { Request, Response } from 'express';
-import { getApiKey, getErrorMessage, logError } from '../common.js';
+import { getApiKey, logError } from '../common.js';
 
 export function createApiKeysHandler() {
   return async (_req: Request, res: Response): Promise<void> => {
@@ -14,7 +14,7 @@ export function createApiKeysHandler() {
       });
     } catch (error) {
       logError(error, 'Get API keys failed');
-      res.status(500).json({ success: false, error: getErrorMessage(error) });
+      res.status(500).json({ success: false, error: 'Failed to retrieve API keys status' });
     }
   };
 }

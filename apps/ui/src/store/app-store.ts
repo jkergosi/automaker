@@ -2676,7 +2676,10 @@ export const useAppStore = create<AppState & AppActions>()(
           kanbanCardDetailLevel: state.kanbanCardDetailLevel,
           boardViewMode: state.boardViewMode,
           // Settings
-          apiKeys: state.apiKeys,
+          // NOTE: apiKeys are intentionally NOT persisted to localStorage for security.
+          // API keys are stored server-side only via the storeApiKey API to prevent
+          // exposure through XSS attacks. The apiKeys state is populated on app load
+          // from the secure server-side storage.
           maxConcurrency: state.maxConcurrency,
           // Note: autoModeByProject is intentionally NOT persisted
           // Auto-mode should always default to OFF on app refresh

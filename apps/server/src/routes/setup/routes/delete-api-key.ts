@@ -11,7 +11,7 @@ const logger = createLogger('Setup');
 
 // In-memory storage reference (imported from common.ts pattern)
 // We need to modify common.ts to export a deleteApiKey function
-import { setApiKey } from '../common.js';
+import { setApiKey, escapeRegExp } from '../common.js';
 
 /**
  * Remove an API key from the .env file
@@ -30,7 +30,7 @@ async function removeApiKeyFromEnv(key: string): Promise<void> {
 
     // Parse existing env content and remove the key
     const lines = envContent.split('\n');
-    const keyRegex = new RegExp(`^${key}=`);
+    const keyRegex = new RegExp(`^${escapeRegExp(key)}=`);
     const newLines = lines.filter((line) => !keyRegex.test(line));
 
     // Remove empty lines at the end
@@ -68,9 +68,10 @@ export function createDeleteApiKeyHandler() {
 
       const envKey = envKeyMap[provider];
       if (!envKey) {
+        logger.warn(`[Setup] Unknown provider requested for deletion: ${provider}`);
         res.status(400).json({
           success: false,
-          error: `Unknown provider: ${provider}. Only anthropic is supported.`,
+          error: 'Unknown provider. Only anthropic is supported.',
         });
         return;
       }
@@ -94,7 +95,7 @@ export function createDeleteApiKeyHandler() {
       logger.error('[Setup] Delete API key error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete API key',
+        error: 'Failed to delete API key',
       });
     }
   };

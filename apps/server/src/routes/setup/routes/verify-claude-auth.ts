@@ -10,6 +10,41 @@ import { getApiKey } from '../common.js';
 
 const logger = createLogger('Setup');
 
+/**
+ * Simple mutex implementation to prevent race conditions when
+ * modifying process.env during concurrent verification requests.
+ *
+ * The Claude Agent SDK reads ANTHROPIC_API_KEY from process.env,
+ * so we must temporarily modify it for verification. This mutex
+ * ensures only one verification runs at a time.
+ */
+class VerificationMutex {
+  private locked = false;
+  private queue: Array<() => void> = [];
+
+  async acquire(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!this.locked) {
+        this.locked = true;
+        resolve();
+      } else {
+        this.queue.push(resolve);
+      }
+    });
+  }
+
+  release(): void {
+    if (this.queue.length > 0) {
+      const next = this.queue.shift();
+      if (next) next();
+    } else {
+      this.locked = false;
+    }
+  }
+}
+
+const verificationMutex = new VerificationMutex();
+
 // Known error patterns that indicate auth failure
 const AUTH_ERROR_PATTERNS = [
   'OAuth token revoked',
@@ -68,13 +103,78 @@ function containsAuthError(text: string): boolean {
   return AUTH_ERROR_PATTERNS.some((pattern) => lowerText.includes(pattern.toLowerCase()));
 }
 
+/** Valid authentication method values */
+const VALID_AUTH_METHODS = ['cli', 'api_key'] as const;
+type AuthMethod = (typeof VALID_AUTH_METHODS)[number];
+
+/**
+ * Validates and extracts the authMethod from the request body.
+ *
+ * @param body - The request body to validate
+ * @returns The validated authMethod or undefined if not provided
+ * @throws Error if authMethod is provided but invalid
+ */
+function validateAuthMethod(body: unknown): AuthMethod | undefined {
+  if (!body || typeof body !== 'object') {
+    return undefined;
+  }
+
+  const obj = body as Record<string, unknown>;
+
+  if (!('authMethod' in obj) || obj.authMethod === undefined || obj.authMethod === null) {
+    return undefined;
+  }
+
+  const authMethod = obj.authMethod;
+
+  if (typeof authMethod !== 'string') {
+    throw new Error(`Invalid authMethod type: expected string, got ${typeof authMethod}`);
+  }
+
+  if (!VALID_AUTH_METHODS.includes(authMethod as AuthMethod)) {
+    throw new Error(
+      `Invalid authMethod value: '${authMethod}'. Valid values: ${VALID_AUTH_METHODS.join(', ')}`
+    );
+  }
+
+  return authMethod as AuthMethod;
+}
+
 export function createVerifyClaudeAuthHandler() {
   return async (req: Request, res: Response): Promise<void> => {
     try {
-      // Get the auth method from the request body
-      const { authMethod } = req.body as { authMethod?: 'cli' | 'api_key' };
+      // Validate and extract the auth method from the request body
+      let authMethod: AuthMethod | undefined;
+      try {
+        authMethod = validateAuthMethod(req.body);
+      } catch (validationError) {
+        res.status(400).json({
+          success: false,
+          authenticated: false,
+          error: validationError instanceof Error ? validationError.message : 'Invalid request',
+        });
+        return;
+      }
 
       logger.info(`[Setup] Verifying Claude authentication using method: ${authMethod || 'auto'}`);
+
+      // Early validation before acquiring mutex - check if API key is needed but missing
+      if (authMethod === 'api_key') {
+        const storedApiKey = getApiKey('anthropic');
+        if (!storedApiKey && !process.env.ANTHROPIC_API_KEY) {
+          res.json({
+            success: true,
+            authenticated: false,
+            error: 'No API key configured. Please enter an API key first.',
+          });
+          return;
+        }
+      }
+
+      // Acquire mutex to prevent race conditions when modifying process.env
+      // The SDK reads ANTHROPIC_API_KEY from environment, so concurrent requests
+      // could interfere with each other without this lock
+      await verificationMutex.acquire();
 
       // Create an AbortController with a 30-second timeout
       const abortController = new AbortController();
@@ -84,7 +184,7 @@ export function createVerifyClaudeAuthHandler() {
       let errorMessage = '';
       let receivedAnyContent = false;
 
-      // Save original env values
+      // Save original env values (inside mutex to ensure consistency)
       const originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
 
       try {
@@ -99,17 +199,8 @@ export function createVerifyClaudeAuthHandler() {
           if (storedApiKey) {
             process.env.ANTHROPIC_API_KEY = storedApiKey;
             logger.info('[Setup] Using stored API key for verification');
-          } else {
-            // Check env var
-            if (!process.env.ANTHROPIC_API_KEY) {
-              res.json({
-                success: true,
-                authenticated: false,
-                error: 'No API key configured. Please enter an API key first.',
-              });
-              return;
-            }
           }
+          // Note: if no stored key, we use the existing env var (already validated above)
         }
 
         // Run a minimal query to verify authentication
@@ -129,7 +220,8 @@ export function createVerifyClaudeAuthHandler() {
         for await (const msg of stream) {
           const msgStr = JSON.stringify(msg);
           allMessages.push(msgStr);
-          logger.info('[Setup] Stream message:', msgStr.substring(0, 500));
+          // Debug log only message type to avoid leaking sensitive data
+          logger.debug('[Setup] Stream message type:', msg.type);
 
           // Check for billing errors FIRST - these should fail verification
           if (isBillingError(msgStr)) {
@@ -221,7 +313,8 @@ export function createVerifyClaudeAuthHandler() {
         } else {
           // No content received - might be an issue
           logger.warn('[Setup] No content received from stream');
-          logger.warn('[Setup] All messages:', allMessages.join('\n'));
+          // Log only message count to avoid leaking sensitive data
+          logger.warn('[Setup] Total messages received:', allMessages.length);
           errorMessage = 'No response received from Claude. Please check your authentication.';
         }
       } catch (error: unknown) {
@@ -277,6 +370,8 @@ export function createVerifyClaudeAuthHandler() {
           // If we cleared it and there was no original, keep it cleared
           delete process.env.ANTHROPIC_API_KEY;
         }
+        // Release the mutex so other verification requests can proceed
+        verificationMutex.release();
       }
 
       logger.info('[Setup] Verification result:', {
