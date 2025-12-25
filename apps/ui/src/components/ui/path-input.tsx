@@ -217,7 +217,8 @@ function PathInput({
         e.key === '/' &&
         !isEditing &&
         !isSearchOpen &&
-        !(e.target as HTMLElement).matches('input, textarea')
+        entries.length > 0 &&
+        !(e.target as HTMLElement).matches('input, textarea, [contenteditable="true"]')
       ) {
         e.preventDefault();
         setIsSearchOpen(true);
@@ -225,14 +226,13 @@ function PathInput({
       // Close search with Escape key
       if (e.key === 'Escape' && isSearchOpen) {
         e.preventDefault();
-        e.stopPropagation(); // Prevent parent modal from closing
         setIsSearchOpen(false);
       }
     };
 
-    window.addEventListener('keydown', handleGlobalKeyDown, true); // Use capture phase
+    window.addEventListener('keydown', handleGlobalKeyDown, true); // Use capture phase for ESC handling and prevent parent modal from closing when search is open
     return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
-  }, [isEditing, isSearchOpen]);
+  }, [isEditing, isSearchOpen, entries.length]);
 
   // Close search when clicking outside
   useEffect(() => {
