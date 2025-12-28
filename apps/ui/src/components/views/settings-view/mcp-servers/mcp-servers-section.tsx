@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Plug,
   Plus,
@@ -29,12 +30,20 @@ import {
   FileJson,
   Download,
   RefreshCw,
+  PlayCircle,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { MCPServerConfig } from '@automaker/types';
 import { syncSettingsToServer, loadMCPServersFromServer } from '@/hooks/use-settings-migration';
+import { getHttpApiClient } from '@/lib/http-api-client';
+import { MCPToolsList, type MCPToolDisplay } from './mcp-tools-list';
 
 type ServerType = 'stdio' | 'sse' | 'http';
 
@@ -45,6 +54,8 @@ interface ServerFormData {
   command: string;
   args: string;
   url: string;
+  headers: string; // JSON string for headers
+  env: string; // JSON string for env vars
 }
 
 const defaultFormData: ServerFormData = {
@@ -54,7 +65,16 @@ const defaultFormData: ServerFormData = {
   command: '',
   args: '',
   url: '',
+  headers: '',
+  env: '',
 };
+
+interface ServerTestState {
+  status: 'idle' | 'testing' | 'success' | 'error';
+  tools?: MCPToolDisplay[];
+  error?: string;
+  connectionTime?: number;
+}
 
 export function MCPServersSection() {
   const {
@@ -74,6 +94,8 @@ export function MCPServersSection() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [serverTestStates, setServerTestStates] = useState<Record<string, ServerTestState>>({});
+  const [expandedServers, setExpandedServers] = useState<Set<string>>(new Set());
 
   // Auto-load MCP servers from settings file on mount
   useEffect(() => {
@@ -98,6 +120,79 @@ export function MCPServersSection() {
     }
   };
 
+  const handleTestServer = async (server: MCPServerConfig) => {
+    setServerTestStates((prev) => ({
+      ...prev,
+      [server.id]: { status: 'testing' },
+    }));
+
+    try {
+      const api = getHttpApiClient();
+      const result = await api.mcp.testServer(server.id);
+
+      if (result.success) {
+        setServerTestStates((prev) => ({
+          ...prev,
+          [server.id]: {
+            status: 'success',
+            tools: result.tools,
+            connectionTime: result.connectionTime,
+          },
+        }));
+        // Auto-expand to show tools
+        setExpandedServers((prev) => new Set([...prev, server.id]));
+        toast.success(
+          `Connected to ${server.name} (${result.tools?.length || 0} tools, ${result.connectionTime}ms)`
+        );
+      } else {
+        setServerTestStates((prev) => ({
+          ...prev,
+          [server.id]: {
+            status: 'error',
+            error: result.error,
+            connectionTime: result.connectionTime,
+          },
+        }));
+        toast.error(`Failed to connect: ${result.error}`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setServerTestStates((prev) => ({
+        ...prev,
+        [server.id]: {
+          status: 'error',
+          error: errorMessage,
+        },
+      }));
+      toast.error(`Test failed: ${errorMessage}`);
+    }
+  };
+
+  const toggleServerExpanded = (serverId: string) => {
+    setExpandedServers((prev) => {
+      const next = new Set(prev);
+      if (next.has(serverId)) {
+        next.delete(serverId);
+      } else {
+        next.add(serverId);
+      }
+      return next;
+    });
+  };
+
+  const getTestStatusIcon = (status: ServerTestState['status']) => {
+    switch (status) {
+      case 'testing':
+        return <Loader2 className="w-4 h-4 animate-spin text-brand-500" />;
+      case 'success':
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+      case 'error':
+        return <XCircle className="w-4 h-4 text-destructive" />;
+      default:
+        return null;
+    }
+  };
+
   const handleOpenAddDialog = () => {
     setFormData(defaultFormData);
     setEditingServer(null);
@@ -112,6 +207,8 @@ export function MCPServersSection() {
       command: server.command || '',
       args: server.args?.join(' ') || '',
       url: server.url || '',
+      headers: server.headers ? JSON.stringify(server.headers, null, 2) : '',
+      env: server.env ? JSON.stringify(server.env, null, 2) : '',
     });
     setEditingServer(server);
     setIsAddDialogOpen(true);
@@ -139,6 +236,36 @@ export function MCPServersSection() {
       return;
     }
 
+    // Parse headers if provided
+    let parsedHeaders: Record<string, string> | undefined;
+    if (formData.headers.trim()) {
+      try {
+        parsedHeaders = JSON.parse(formData.headers.trim());
+        if (typeof parsedHeaders !== 'object' || Array.isArray(parsedHeaders)) {
+          toast.error('Headers must be a JSON object');
+          return;
+        }
+      } catch {
+        toast.error('Invalid JSON for headers');
+        return;
+      }
+    }
+
+    // Parse env if provided
+    let parsedEnv: Record<string, string> | undefined;
+    if (formData.env.trim()) {
+      try {
+        parsedEnv = JSON.parse(formData.env.trim());
+        if (typeof parsedEnv !== 'object' || Array.isArray(parsedEnv)) {
+          toast.error('Environment variables must be a JSON object');
+          return;
+        }
+      } catch {
+        toast.error('Invalid JSON for environment variables');
+        return;
+      }
+    }
+
     const serverData: Omit<MCPServerConfig, 'id'> = {
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
@@ -151,8 +278,14 @@ export function MCPServersSection() {
       if (formData.args.trim()) {
         serverData.args = formData.args.trim().split(/\s+/);
       }
+      if (parsedEnv) {
+        serverData.env = parsedEnv;
+      }
     } else {
       serverData.url = formData.url.trim();
+      if (parsedHeaders) {
+        serverData.headers = parsedHeaders;
+      }
     }
 
     if (editingServer) {
@@ -414,63 +547,139 @@ export function MCPServersSection() {
           <div className="space-y-3">
             {mcpServers.map((server) => {
               const Icon = getServerIcon(server.type);
+              const testState = serverTestStates[server.id];
+              const isExpanded = expandedServers.has(server.id);
+              const hasTools = testState?.tools && testState.tools.length > 0;
+
               return (
-                <div
+                <Collapsible
                   key={server.id}
-                  className={cn(
-                    'flex items-center justify-between p-4 rounded-xl border',
-                    server.enabled !== false
-                      ? 'border-border/50 bg-accent/20'
-                      : 'border-border/30 bg-muted/30 opacity-60'
-                  )}
-                  data-testid={`mcp-server-${server.id}`}
+                  open={isExpanded}
+                  onOpenChange={() => toggleServerExpanded(server.id)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'w-8 h-8 rounded-lg flex items-center justify-center',
-                        server.enabled !== false ? 'bg-brand-500/20' : 'bg-muted'
-                      )}
-                    >
-                      <Icon className="w-4 h-4 text-brand-500" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">{server.name}</div>
-                      {server.description && (
-                        <div className="text-xs text-muted-foreground">{server.description}</div>
-                      )}
-                      <div className="text-xs text-muted-foreground/60 mt-0.5">
-                        {server.type === 'stdio'
-                          ? `${server.command}${server.args?.length ? ' ' + server.args.join(' ') : ''}`
-                          : server.url}
+                  <div
+                    className={cn(
+                      'rounded-xl border',
+                      server.enabled !== false
+                        ? 'border-border/50 bg-accent/20'
+                        : 'border-border/30 bg-muted/30 opacity-60'
+                    )}
+                    data-testid={`mcp-server-${server.id}`}
+                  >
+                    <div className="flex items-center justify-between p-4 gap-2">
+                      <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+                        <CollapsibleTrigger asChild>
+                          <button
+                            className={cn(
+                              'flex items-center gap-3 text-left min-w-0 flex-1',
+                              hasTools && 'cursor-pointer hover:opacity-80'
+                            )}
+                            disabled={!hasTools}
+                          >
+                            {hasTools ? (
+                              isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                              )
+                            ) : (
+                              <div className="w-4 shrink-0" />
+                            )}
+                            <div
+                              className={cn(
+                                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                                server.enabled !== false ? 'bg-brand-500/20' : 'bg-muted'
+                              )}
+                            >
+                              <Icon className="w-4 h-4 text-brand-500" />
+                            </div>
+                            <div className="min-w-0 flex-1 overflow-hidden">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm truncate">{server.name}</span>
+                                {testState && getTestStatusIcon(testState.status)}
+                                {testState?.status === 'success' && testState.tools && (
+                                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded whitespace-nowrap">
+                                    {testState.tools.length} tool
+                                    {testState.tools.length !== 1 ? 's' : ''}
+                                  </span>
+                                )}
+                              </div>
+                              {server.description && (
+                                <div className="text-xs text-muted-foreground truncate">
+                                  {server.description}
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground/60 mt-0.5 truncate">
+                                {server.type === 'stdio'
+                                  ? `${server.command}${server.args?.length ? ' ' + server.args.join(' ') : ''}`
+                                  : server.url}
+                              </div>
+                              {testState?.status === 'error' && testState.error && (
+                                <div className="text-xs text-destructive mt-1 line-clamp-2 break-words">
+                                  {testState.error}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        </CollapsibleTrigger>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleTestServer(server)}
+                          disabled={testState?.status === 'testing' || server.enabled === false}
+                          data-testid={`mcp-server-test-${server.id}`}
+                          className="h-8 px-2"
+                        >
+                          {testState?.status === 'testing' ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <PlayCircle className="w-4 h-4" />
+                          )}
+                          <span className="ml-1.5 text-xs">Test</span>
+                        </Button>
+                        <Switch
+                          checked={server.enabled !== false}
+                          onCheckedChange={() => handleToggleEnabled(server)}
+                          data-testid={`mcp-server-toggle-${server.id}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEditDialog(server)}
+                          data-testid={`mcp-server-edit-${server.id}`}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteConfirmId(server.id)}
+                          data-testid={`mcp-server-delete-${server.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
+                    {hasTools && (
+                      <CollapsibleContent>
+                        <div className="px-4 pb-4 pt-0 ml-7 overflow-hidden">
+                          <div className="text-xs font-medium text-muted-foreground mb-2">
+                            Available Tools
+                          </div>
+                          <MCPToolsList
+                            tools={testState.tools!}
+                            isLoading={testState.status === 'testing'}
+                            error={testState.error}
+                            className="max-w-full"
+                          />
+                        </div>
+                      </CollapsibleContent>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={server.enabled !== false}
-                      onCheckedChange={() => handleToggleEnabled(server)}
-                      data-testid={`mcp-server-toggle-${server.id}`}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenEditDialog(server)}
-                      data-testid={`mcp-server-edit-${server.id}`}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setDeleteConfirmId(server.id)}
-                      data-testid={`mcp-server-delete-${server.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                </Collapsible>
               );
             })}
           </div>
@@ -545,18 +754,44 @@ export function MCPServersSection() {
                     data-testid="mcp-server-args-input"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="server-env">Environment Variables (JSON, optional)</Label>
+                  <Textarea
+                    id="server-env"
+                    value={formData.env}
+                    onChange={(e) => setFormData({ ...formData, env: e.target.value })}
+                    placeholder={'{\n  "API_KEY": "your-key"\n}'}
+                    className="font-mono text-sm h-24"
+                    data-testid="mcp-server-env-input"
+                  />
+                </div>
               </>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="server-url">URL</Label>
-                <Input
-                  id="server-url"
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://example.com/mcp"
-                  data-testid="mcp-server-url-input"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="server-url">URL</Label>
+                  <Input
+                    id="server-url"
+                    value={formData.url}
+                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                    placeholder="https://example.com/mcp"
+                    data-testid="mcp-server-url-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="server-headers">Headers (JSON, optional)</Label>
+                  <Textarea
+                    id="server-headers"
+                    value={formData.headers}
+                    onChange={(e) => setFormData({ ...formData, headers: e.target.value })}
+                    placeholder={
+                      '{\n  "x-api-key": "your-api-key",\n  "Authorization": "Bearer token"\n}'
+                    }
+                    className="font-mono text-sm h-24"
+                    data-testid="mcp-server-headers-input"
+                  />
+                </div>
+              </>
             )}
           </div>
           <DialogFooter>

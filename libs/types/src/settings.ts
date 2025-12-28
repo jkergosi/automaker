@@ -173,6 +173,8 @@ export interface MCPToolInfo {
   name: string;
   /** Description of what the tool does */
   description?: string;
+  /** JSON Schema for the tool's input parameters */
+  inputSchema?: Record<string, unknown>;
   /** Whether this tool is enabled for use (defaults to true) */
   enabled: boolean;
 }

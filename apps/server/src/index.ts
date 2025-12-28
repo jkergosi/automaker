@@ -50,6 +50,8 @@ import { createGitHubRoutes } from './routes/github/index.js';
 import { createContextRoutes } from './routes/context/index.js';
 import { createBacklogPlanRoutes } from './routes/backlog-plan/index.js';
 import { cleanupStaleValidations } from './routes/github/routes/validation-common.js';
+import { createMCPRoutes } from './routes/mcp/index.js';
+import { MCPTestService } from './services/mcp-test-service.js';
 
 // Load environment variables
 dotenv.config();
@@ -119,6 +121,7 @@ const agentService = new AgentService(DATA_DIR, events, settingsService);
 const featureLoader = new FeatureLoader();
 const autoModeService = new AutoModeService(events, settingsService);
 const claudeUsageService = new ClaudeUsageService();
+const mcpTestService = new MCPTestService(settingsService);
 
 // Initialize services
 (async () => {
@@ -162,6 +165,7 @@ app.use('/api/claude', createClaudeRoutes(claudeUsageService));
 app.use('/api/github', createGitHubRoutes(events, settingsService));
 app.use('/api/context', createContextRoutes(settingsService));
 app.use('/api/backlog-plan', createBacklogPlanRoutes(events, settingsService));
+app.use('/api/mcp', createMCPRoutes(mcpTestService));
 
 // Create HTTP server
 const server = createServer(app);

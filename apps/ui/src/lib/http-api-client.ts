@@ -1139,6 +1139,67 @@ export class HttpApiClient implements ElectronAPI {
       return this.subscribeToEvent('backlog-plan:event', callback as EventCallback);
     },
   };
+
+  // MCP API - Test MCP server connections and list tools
+  mcp = {
+    testServer: (
+      serverId: string
+    ): Promise<{
+      success: boolean;
+      tools?: Array<{
+        name: string;
+        description?: string;
+        inputSchema?: Record<string, unknown>;
+        enabled: boolean;
+      }>;
+      error?: string;
+      connectionTime?: number;
+      serverInfo?: {
+        name?: string;
+        version?: string;
+      };
+    }> => this.post('/api/mcp/test', { serverId }),
+
+    testServerConfig: (serverConfig: {
+      id: string;
+      name: string;
+      description?: string;
+      type?: 'stdio' | 'sse' | 'http';
+      command?: string;
+      args?: string[];
+      env?: Record<string, string>;
+      url?: string;
+      headers?: Record<string, string>;
+      enabled?: boolean;
+    }): Promise<{
+      success: boolean;
+      tools?: Array<{
+        name: string;
+        description?: string;
+        inputSchema?: Record<string, unknown>;
+        enabled: boolean;
+      }>;
+      error?: string;
+      connectionTime?: number;
+      serverInfo?: {
+        name?: string;
+        version?: string;
+      };
+    }> => this.post('/api/mcp/test', { serverConfig }),
+
+    listTools: (
+      serverId: string
+    ): Promise<{
+      success: boolean;
+      tools?: Array<{
+        name: string;
+        description?: string;
+        inputSchema?: Record<string, unknown>;
+        enabled: boolean;
+      }>;
+      error?: string;
+    }> => this.post('/api/mcp/tools', { serverId }),
+  };
 }
 
 // Singleton instance
