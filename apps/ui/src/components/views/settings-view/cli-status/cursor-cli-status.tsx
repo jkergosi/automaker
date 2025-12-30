@@ -63,6 +63,91 @@ export function CursorCliStatusSkeleton() {
   );
 }
 
+export function CursorPermissionsSkeleton() {
+  return (
+    <div
+      className={cn(
+        'rounded-2xl overflow-hidden',
+        'border border-border/50',
+        'bg-gradient-to-br from-card/90 via-card/70 to-card/80 backdrop-blur-xl',
+        'shadow-sm shadow-black/5'
+      )}
+    >
+      <div className="p-6 border-b border-border/50 bg-gradient-to-r from-transparent via-accent/5 to-transparent flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <SkeletonPulse className="w-9 h-9 rounded-xl" />
+          <div className="text-left">
+            <SkeletonPulse className="h-6 w-32 mb-2" />
+            <SkeletonPulse className="h-4 w-48" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <SkeletonPulse className="h-6 w-20 rounded-full" />
+          <SkeletonPulse className="w-5 h-5 rounded" />
+        </div>
+      </div>
+      <div className="p-6 space-y-6">
+        {/* Security Warning skeleton */}
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-border/30 bg-muted/10">
+          <SkeletonPulse className="w-5 h-5 rounded shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-2">
+            <SkeletonPulse className="h-4 w-32" />
+            <SkeletonPulse className="h-3 w-full" />
+            <SkeletonPulse className="h-3 w-3/4" />
+          </div>
+        </div>
+        {/* Permission Profiles skeleton */}
+        <div className="space-y-3">
+          <SkeletonPulse className="h-4 w-36" />
+          <div className="grid gap-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-4 rounded-xl border border-border/30 bg-muted/10">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <SkeletonPulse className="w-4 h-4 rounded" />
+                      <SkeletonPulse className="h-4 w-24" />
+                      <SkeletonPulse className="h-4 w-12 rounded-full" />
+                    </div>
+                    <SkeletonPulse className="h-3 w-full" />
+                    <SkeletonPulse className="h-3 w-2/3" />
+                    <div className="flex items-center gap-2">
+                      <SkeletonPulse className="h-3 w-20" />
+                      <SkeletonPulse className="h-3 w-1" />
+                      <SkeletonPulse className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <SkeletonPulse className="h-8 w-28 rounded-md" />
+                    <SkeletonPulse className="h-8 w-28 rounded-md" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Config File Locations skeleton */}
+        <div className="space-y-3">
+          <SkeletonPulse className="h-4 w-40" />
+          <div className="p-4 rounded-xl border border-border/30 bg-muted/10 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <SkeletonPulse className="h-4 w-24" />
+                <SkeletonPulse className="h-3 w-48" />
+              </div>
+              <SkeletonPulse className="w-8 h-8 rounded" />
+            </div>
+            <div className="border-t border-border/30 pt-2 space-y-1">
+              <SkeletonPulse className="h-4 w-28" />
+              <SkeletonPulse className="h-3 w-40" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ModelConfigSkeleton() {
   return (
     <div
