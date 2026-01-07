@@ -64,7 +64,7 @@ describe('CLI Detection Framework', () => {
     });
 
     it('should handle unsupported platform', () => {
-      const instructions = getInstallInstructions('claude', 'unknown-platform');
+      const instructions = getInstallInstructions('claude', 'unknown-platform' as any);
       expect(instructions).toContain('No installation instructions available');
     });
   });
