@@ -72,8 +72,7 @@ export function UsagePopover() {
   const [codexError, setCodexError] = useState<UsageError | null>(null);
 
   // Check authentication status
-  const isClaudeCliVerified =
-    claudeAuthStatus?.authenticated && claudeAuthStatus?.method === 'cli_authenticated';
+  const isClaudeCliVerified = !!claudeAuthStatus?.authenticated;
   const isCodexAuthenticated = codexAuthStatus?.authenticated;
 
   // Determine which tab to show by default

@@ -161,11 +161,15 @@ export class ClaudeUsageService {
 
       const workingDirectory = this.isWindows
         ? process.env.USERPROFILE || os.homedir() || 'C:\\'
-        : process.env.HOME || os.homedir() || '/tmp';
+        : os.tmpdir();
 
       // Use platform-appropriate shell and command
       const shell = this.isWindows ? 'cmd.exe' : '/bin/sh';
-      const args = this.isWindows ? ['/c', 'claude', '/usage'] : ['-c', 'claude /usage'];
+      // Use --add-dir to whitelist the current directory and bypass the trust prompt
+      // We don't pass /usage here, we'll type it into the REPL
+      const args = this.isWindows
+        ? ['/c', 'claude', '--add-dir', workingDirectory]
+        : ['-c', `claude --add-dir "${workingDirectory}"`];
 
       let ptyProcess: any = null;
 
@@ -181,8 +185,7 @@ export class ClaudeUsageService {
           } as Record<string, string>,
         });
       } catch (spawnError) {
-        // pty.spawn() can throw synchronously if the native module fails to load
-        // or if PTY is not available in the current environment (e.g., containers without /dev/pts)
+        // ... (error handling omitted for brevity in replace block, keep existing)
         const errorMessage = spawnError instanceof Error ? spawnError.message : String(spawnError);
         logger.error('[executeClaudeUsageCommandPty] Failed to spawn PTY:', errorMessage);
 
@@ -205,16 +208,52 @@ export class ClaudeUsageService {
           if (output.includes('Current session')) {
             resolve(output);
           } else {
-            reject(new Error('Command timed out'));
+            reject(
+              new Error(
+                'The Claude CLI took too long to respond. This can happen if the CLI is waiting for a trust prompt or is otherwise busy.'
+              )
+            );
           }
         }
-      }, this.timeout);
+      }, 45000); // 45 second timeout
+
+      let hasSentCommand = false;
+      let hasApprovedTrust = false;
 
       ptyProcess.onData((data: string) => {
         output += data;
 
-        // Check if we've seen the usage data (look for "Current session")
-        if (!hasSeenUsageData && output.includes('Current session')) {
+        // Strip ANSI codes for easier matching
+        // eslint-disable-next-line no-control-regex
+        const cleanOutput = output.replace(/\x1B\[[0-9;]*[A-Za-z]/g, '');
+
+        // Check for specific authentication/permission errors
+        if (
+          cleanOutput.includes('OAuth token does not meet scope requirement') ||
+          cleanOutput.includes('permission_error') ||
+          cleanOutput.includes('token_expired') ||
+          cleanOutput.includes('authentication_error')
+        ) {
+          if (!settled) {
+            settled = true;
+            if (ptyProcess && !ptyProcess.killed) {
+              ptyProcess.kill();
+            }
+            reject(
+              new Error(
+                "Claude CLI authentication issue. Please run 'claude logout' and then 'claude login' in your terminal to refresh permissions."
+              )
+            );
+          }
+          return;
+        }
+
+        // Check if we've seen the usage data (look for "Current session" or the TUI Usage header)
+        if (
+          !hasSeenUsageData &&
+          (cleanOutput.includes('Current session') ||
+            (cleanOutput.includes('Usage') && cleanOutput.includes('% left')))
+        ) {
           hasSeenUsageData = true;
           // Wait for full output, then send escape to exit
           setTimeout(() => {
@@ -228,16 +267,54 @@ export class ClaudeUsageService {
                 }
               }, 2000);
             }
-          }, 2000);
+          }, 3000);
+        }
+
+        // Handle Trust Dialog: "Do you want to work in this folder?"
+        // Since we are running in os.tmpdir(), it is safe to approve.
+        if (!hasApprovedTrust && cleanOutput.includes('Do you want to work in this folder?')) {
+          hasApprovedTrust = true;
+          // Wait a tiny bit to ensure prompt is ready, then send Enter
+          setTimeout(() => {
+            if (!settled && ptyProcess && !ptyProcess.killed) {
+              ptyProcess.write('\r');
+            }
+          }, 1000);
+        }
+
+        // Detect REPL prompt and send /usage command
+        if (
+          !hasSentCommand &&
+          (cleanOutput.includes('❯') || cleanOutput.includes('? for shortcuts'))
+        ) {
+          hasSentCommand = true;
+          // Wait for REPL to fully settle
+          setTimeout(() => {
+            if (!settled && ptyProcess && !ptyProcess.killed) {
+              // Send command with carriage return
+              ptyProcess.write('/usage\r');
+
+              // Send another enter after 1 second to confirm selection if autocomplete menu appeared
+              setTimeout(() => {
+                if (!settled && ptyProcess && !ptyProcess.killed) {
+                  ptyProcess.write('\r');
+                }
+              }, 1200);
+            }
+          }, 1500);
         }
 
         // Fallback: if we see "Esc to cancel" but haven't seen usage data yet
-        if (!hasSeenUsageData && output.includes('Esc to cancel')) {
+        if (
+          !hasSeenUsageData &&
+          cleanOutput.includes('Esc to cancel') &&
+          !cleanOutput.includes('Do you want to work in this folder?')
+        ) {
           setTimeout(() => {
             if (!settled && ptyProcess && !ptyProcess.killed) {
               ptyProcess.write('\x1b'); // Send escape key
             }
-          }, 3000);
+          }, 5000);
         }
       });
 
@@ -246,8 +323,11 @@ export class ClaudeUsageService {
         if (settled) return;
         settled = true;
 
-        // Check for authentication errors in output
-        if (output.includes('token_expired') || output.includes('authentication_error')) {
+        if (
+          output.includes('token_expired') ||
+          output.includes('authentication_error') ||
+          output.includes('permission_error')
+        ) {
           reject(new Error("Authentication required - please run 'claude login'"));
           return;
         }

@@ -69,7 +69,6 @@ export function BoardHeader({
   const [showAutoModeSettings, setShowAutoModeSettings] = useState(false);
   const [showWorktreeSettings, setShowWorktreeSettings] = useState(false);
   const [showPlanSettings, setShowPlanSettings] = useState(false);
-  const apiKeys = useAppStore((state) => state.apiKeys);
   const claudeAuthStatus = useSetupStore((state) => state.claudeAuthStatus);
   const skipVerificationInAutoMode = useAppStore((state) => state.skipVerificationInAutoMode);
   const setSkipVerificationInAutoMode = useAppStore((state) => state.setSkipVerificationInAutoMode);
@@ -108,15 +107,8 @@ export function BoardHeader({
     [projectPath, setWorktreePanelVisible]
   );
 
-  // Claude usage tracking visibility logic
-  // Hide when using API key (only show for Claude Code CLI users)
-  // Also hide on Windows for now (CLI usage command not supported)
-  const isWindows =
-    typeof navigator !== 'undefined' && navigator.platform?.toLowerCase().includes('win');
-  const hasClaudeApiKey = !!apiKeys.anthropic || !!claudeAuthStatus?.hasEnvApiKey;
-  const isClaudeCliVerified =
-    claudeAuthStatus?.authenticated && claudeAuthStatus?.method === 'cli_authenticated';
-  const showClaudeUsage = !hasClaudeApiKey && !isWindows && isClaudeCliVerified;
+  const isClaudeCliVerified = !!claudeAuthStatus?.authenticated;
+  const showClaudeUsage = isClaudeCliVerified;
 
   // Codex usage tracking visibility logic
   // Show if Codex is authenticated (CLI or API key)
@@ -143,8 +135,8 @@ export function BoardHeader({
         />
       </div>
       <div className="flex gap-4 items-center">
-        {/* Usage Popover - show if either provider is authenticated */}
-        {isMounted && (showClaudeUsage || showCodexUsage) && <UsagePopover />}
+        {/* Usage Popover - show if either provider is authenticated, only on desktop */}
+        {isMounted && !isMobile && (showClaudeUsage || showCodexUsage) && <UsagePopover />}
 
         {/* Mobile view: show hamburger menu with all controls */}
         {isMounted && isMobile && (
@@ -158,6 +150,8 @@ export function BoardHeader({
             onAutoModeToggle={onAutoModeToggle}
             onOpenAutoModeSettings={() => setShowAutoModeSettings(true)}
             onOpenPlanDialog={onOpenPlanDialog}
+            showClaudeUsage={showClaudeUsage}
+            showCodexUsage={showCodexUsage}
           />
         )}
 

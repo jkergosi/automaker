@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Menu, Bot, Wand2, Settings2, GitBranch, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MobileUsageBar } from './mobile-usage-bar';
 
 interface HeaderMobileMenuProps {
   // Worktree panel visibility
@@ -26,6 +27,9 @@ interface HeaderMobileMenuProps {
   onOpenAutoModeSettings: () => void;
   // Plan button
   onOpenPlanDialog: () => void;
+  // Usage bar visibility
+  showClaudeUsage: boolean;
+  showCodexUsage: boolean;
 }
 
 export function HeaderMobileMenu({
@@ -38,6 +42,8 @@ export function HeaderMobileMenu({
   onAutoModeToggle,
   onOpenAutoModeSettings,
   onOpenPlanDialog,
+  showClaudeUsage,
+  showCodexUsage,
 }: HeaderMobileMenuProps) {
   return (
     <DropdownMenu>
@@ -52,6 +58,17 @@ export function HeaderMobileMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
+        {/* Usage Bar - show if either provider is authenticated */}
+        {(showClaudeUsage || showCodexUsage) && (
+          <>
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              Usage
+            </DropdownMenuLabel>
+            <MobileUsageBar showClaudeUsage={showClaudeUsage} showCodexUsage={showCodexUsage} />
+            <DropdownMenuSeparator />
+          </>
+        )}
+
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           Controls
         </DropdownMenuLabel>
