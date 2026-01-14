@@ -1214,7 +1214,16 @@ const OPENCODE_OAUTH_KEYS = ['access_token', 'oauth_token'] as const;
 const OPENCODE_API_KEY_KEYS = ['api_key', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY'] as const;
 
 // Provider names that OpenCode uses for provider-specific auth entries
-const OPENCODE_PROVIDERS = ['anthropic', 'openai', 'google', 'bedrock', 'amazon-bedrock'] as const;
+// NOTE: github-copilot uses refresh tokens, so 'access' may be empty but 'refresh' is valid
+const OPENCODE_PROVIDERS = [
+  'anthropic',
+  'openai',
+  'google',
+  'bedrock',
+  'amazon-bedrock',
+  'github-copilot',
+  'copilot',
+] as const;
 
 function getOpenCodeNestedTokens(record: Record<string, unknown>): Record<string, unknown> | null {
   const tokens = record[OPENCODE_TOKENS_KEY];
@@ -1227,18 +1236,28 @@ function getOpenCodeNestedTokens(record: Record<string, unknown>): Record<string
 /**
  * Check if the auth JSON has provider-specific OAuth credentials
  * OpenCode stores auth in format: { "anthropic": { "type": "oauth", "access": "...", "refresh": "..." } }
+ * GitHub Copilot uses refresh tokens, so 'access' may be empty but 'refresh' is valid
  */
 function hasProviderOAuth(authJson: Record<string, unknown>): boolean {
   for (const provider of OPENCODE_PROVIDERS) {
     const providerAuth = authJson[provider];
     if (providerAuth && typeof providerAuth === 'object' && !Array.isArray(providerAuth)) {
       const auth = providerAuth as Record<string, unknown>;
-      // Check for OAuth type with access token
-      if (auth.type === 'oauth' && typeof auth.access === 'string' && auth.access) {
-        return true;
+      // Check for OAuth type with access token OR refresh token (GitHub Copilot uses refresh tokens)
+      if (auth.type === 'oauth') {
+        if (
+          (typeof auth.access === 'string' && auth.access) ||
+          (typeof auth.refresh === 'string' && auth.refresh)
+        ) {
+          return true;
+        }
       }
       // Also check for access_token field directly
       if (typeof auth.access_token === 'string' && auth.access_token) {
+        return true;
+      }
+      // Check for refresh_token field directly
+      if (typeof auth.refresh_token === 'string' && auth.refresh_token) {
         return true;
       }
     }
